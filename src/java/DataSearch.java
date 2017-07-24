@@ -19,7 +19,7 @@ class DataSearch {
         return tagsMap;
     }
     private static boolean isSuitable(String[] optionValues, HashMap tagsMap) {
-        for (int i = 0; i < optionValues.length - 1; i = i + 2) {
+        for (int i = 0; i < optionValues.length - 1; i += 2) {
             if (tagsMap.containsKey(optionValues[i])
                     && !Objects.equals(tagsMap.get(optionValues[i]), optionValues[i + 1])) {
                 return false;
