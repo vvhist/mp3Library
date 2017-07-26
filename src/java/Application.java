@@ -1,20 +1,23 @@
-import com.mpatric.mp3agic.InvalidDataException;
-import com.mpatric.mp3agic.UnsupportedTagException;
 import org.apache.commons.cli.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class Application {
-    private static CommandLine createCommandLineOptions(String[] args) throws ParseException {
+    private static CommandLine createCommandLineOptions(String[] args) {
         Options options = new Options();
         CommandLineParser parser = new DefaultParser();
         Option search  = Option.builder().longOpt("search").valueSeparator().hasArgs().build();
         Option rebuild = Option.builder().longOpt("rebuild").hasArg(false).build();
         options.addOption(search);
         options.addOption(rebuild);
-        return parser.parse(options, args);
+        try {
+            return parser.parse(options, args);
+        } catch (ParseException e) {
+            System.err.println("Parse error");
+            System.exit(1);
+        }
+        return null;
     }
     static boolean firstArgumentIsFolder(String[] args) {
         if (args.length == 0 || !new File(args[0]).isDirectory()) {
@@ -23,10 +26,9 @@ public class Application {
         }
         return true;
     }
-    public static void main(String[] args) throws IOException, ParseException, InvalidDataException,
-            UnsupportedTagException, ClassNotFoundException {
+    public static void main(String[] args) {
         CommandLine cmd = createCommandLineOptions(args);
-        if (!firstArgumentIsFolder(args)) return;
+        if (cmd == null || !firstArgumentIsFolder(args)) return;
         File musicFolder = new File(args[0]);
         String databasePath = musicFolder + File.separator + "database.ser";
 

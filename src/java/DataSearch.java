@@ -27,15 +27,18 @@ class DataSearch {
         }
         return true;
     }
-    static ArrayList<String> getResults(String[] optionValues, ArrayList<File> data) throws
-            IOException, UnsupportedTagException, InvalidDataException {
+    static ArrayList<String> getResults(String[] optionValues, ArrayList<File> data) {
         ArrayList<String> selectedData = new ArrayList<>();
         for (File file : data) {
-            Mp3File track = new Mp3File(file);
-            ID3Wrapper tag = new ID3Wrapper(track.getId3v1Tag(), track.getId3v2Tag());
-            HashMap tagsMap = createTagsMap(tag);
-            if (isSuitable(optionValues, tagsMap)) {
-                selectedData.add(tag.getTitle());
+            try {
+                Mp3File track = new Mp3File(file);
+                ID3Wrapper tag = new ID3Wrapper(track.getId3v1Tag(), track.getId3v2Tag());
+                HashMap tagsMap = createTagsMap(tag);
+                if (isSuitable(optionValues, tagsMap)) {
+                    selectedData.add(tag.getTitle());
+                }
+            } catch (IOException | UnsupportedTagException | InvalidDataException e) {
+                System.err.println("Error: the program failed to process " + file);
             }
         }
         return selectedData;

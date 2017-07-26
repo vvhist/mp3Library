@@ -1,7 +1,7 @@
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.UnsupportedTagException;
-import org.apache.commons.cli.ParseException;
 import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,13 +10,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class TestMp3Library {
-    private static void testFirstArgument() {
+    @Test private static void testFirstArgument() {
         boolean isNoArgs    = Application.firstArgumentIsFolder(new String[] {});
         boolean isNotFolder = Application.firstArgumentIsFolder(new String[] {"String"});
         Assert.assertEquals(isNoArgs,    false);
         Assert.assertEquals(isNotFolder, false);
     }
-    private static void testDataCreation() {
+    @Test private static void testDataCreation() {
         File folder = new File("test\\resources\\withoutMp3s");
         Assert.assertNull(MusicData.create(folder));
 
@@ -35,7 +35,7 @@ public class TestMp3Library {
         }
         Assert.assertEquals(trialData, strings);
     }
-    private static void testSerialization() throws IOException {
+    @Test private static void testSerialization() throws IOException {
         File musicFolder = new File("test\\resources");
         String databasePath = musicFolder + File.separator + "database.ser";
         Database.serialize(databasePath, MusicData.create(musicFolder));
@@ -47,44 +47,33 @@ public class TestMp3Library {
         byte[] file2 = Files.readAllBytes(tempDatabase.toPath());
         Assert.assertEquals(Arrays.equals(file1, file2), true);
     }
-    private static void testDeserialization() throws IOException, ClassNotFoundException{
+    @Test private static void testDeserialization() throws IOException, ClassNotFoundException{
         Database trialDatabase = new Database();
         trialDatabase.data = MusicData.create(new File("test\\resources"));
         Database database = Database.deserialize("test\\resources\\database\\database.ser");
         Assert.assertEquals(database.data, trialDatabase.data);
     }
-    private static void testDataSearch() throws IOException, UnsupportedTagException,
+    @Test private static void testDataSearch() throws IOException, UnsupportedTagException,
             InvalidDataException {
         ArrayList<File> data = MusicData.create(new File("test\\resources"));
 
-        String[] optionValues1 = new String[] {"Year", "2000", "i", "j", "Genre", "Classic Rock"};
-        ArrayList<String> results1 = DataSearch.getResults(optionValues1, data);
-        ArrayList<String> testResults1 = new ArrayList<>();
-        testResults1.add("Five");
-        testResults1.add("One");
-        testResults1.add("Two");
-        testResults1.add("Three");
-        testResults1.add("Four");
-        testResults1.add("Six");
-        Assert.assertEquals(results1, testResults1);
+        String[] optionValues = new String[] {"Year", "2000", "i", "j", "Genre", "Classic Rock"};
+        ArrayList<String> results = DataSearch.getResults(optionValues, data);
+        ArrayList<String> testResults = new ArrayList<>();
+        testResults.add("Five");
+        testResults.add("One");
+        testResults.add("Two");
+        testResults.add("Three");
+        testResults.add("Four");
+        testResults.add("Six");
+        Assert.assertEquals(results, testResults);
 
-        String[] optionValues2 = new String[] {"Artist", "Artist 2", "Album", "Album 2"};
-        ArrayList<String> results2 = DataSearch.getResults(optionValues2, data);
-        ArrayList<String> testResults2 = new ArrayList<>();
-        testResults2.add("Five");
-        testResults2.add("Four");
-        testResults2.add("Six");
-        Assert.assertEquals(results2, testResults2);
-    }
-    public static void main(String args[]) throws IOException, ParseException, InvalidDataException,
-            UnsupportedTagException, ClassNotFoundException {
-        testFirstArgument();
-        testDataCreation();
-        testSerialization();
-        testDeserialization();
-        testDataSearch();
-        System.out.println();
-        System.out.println("---Ignore any messages above---");
-        System.out.println("The test has been successfully completed.");
+        optionValues = new String[] {"Artist", "Artist 2", "Album", "Album 2"};
+        results = DataSearch.getResults(optionValues, data);
+        testResults = new ArrayList<>();
+        testResults.add("Five");
+        testResults.add("Four");
+        testResults.add("Six");
+        Assert.assertEquals(results, testResults);
     }
 }
