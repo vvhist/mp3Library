@@ -30,15 +30,17 @@ class DataSearch {
     static ArrayList<String> getResults(String[] optionValues, ArrayList<File> data) {
         ArrayList<String> selectedData = new ArrayList<>();
         for (File file : data) {
+            Mp3File track;
             try {
-                Mp3File track = new Mp3File(file);
-                ID3Wrapper tag = new ID3Wrapper(track.getId3v1Tag(), track.getId3v2Tag());
-                HashMap tagsMap = createTagsMap(tag);
-                if (isSuitable(optionValues, tagsMap)) {
-                    selectedData.add(tag.getTitle());
-                }
+                track = new Mp3File(file);
             } catch (IOException | UnsupportedTagException | InvalidDataException e) {
                 System.err.println("Error: the program failed to process " + file);
+                continue;
+            }
+            ID3Wrapper tag = new ID3Wrapper(track.getId3v1Tag(), track.getId3v2Tag());
+            HashMap tagsMap = createTagsMap(tag);
+            if (isSuitable(optionValues, tagsMap)) {
+                selectedData.add(tag.getTitle());
             }
         }
         return selectedData;

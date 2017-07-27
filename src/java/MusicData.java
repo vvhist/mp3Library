@@ -6,7 +6,6 @@ class MusicData {
         ArrayList<File> data = new ArrayList<>();
         addMp3FilesFromFolder(data, folder);
         if (data.size() == 0) {
-            System.out.println("No .mp3 files were found!");
             return null;
         }
         return data;

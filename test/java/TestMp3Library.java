@@ -10,13 +10,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class TestMp3Library {
-    @Test private static void testFirstArgument() {
+    @Test public void testFirstArgument() {
         boolean isNoArgs    = Application.firstArgumentIsFolder(new String[] {});
         boolean isNotFolder = Application.firstArgumentIsFolder(new String[] {"String"});
         Assert.assertEquals(isNoArgs,    false);
         Assert.assertEquals(isNotFolder, false);
     }
-    @Test private static void testDataCreation() {
+    @Test public void testDataCreation() {
         File folder = new File("test\\resources\\withoutMp3s");
         Assert.assertNull(MusicData.create(folder));
 
@@ -35,7 +35,7 @@ public class TestMp3Library {
         }
         Assert.assertEquals(trialData, strings);
     }
-    @Test private static void testSerialization() throws IOException {
+    @Test public void testSerialization() throws IOException {
         File musicFolder = new File("test\\resources");
         String databasePath = musicFolder + File.separator + "database.ser";
         Database.serialize(databasePath, MusicData.create(musicFolder));
@@ -47,13 +47,13 @@ public class TestMp3Library {
         byte[] file2 = Files.readAllBytes(tempDatabase.toPath());
         Assert.assertEquals(Arrays.equals(file1, file2), true);
     }
-    @Test private static void testDeserialization() throws IOException, ClassNotFoundException{
+    @Test public void testDeserialization() throws IOException, ClassNotFoundException{
         Database trialDatabase = new Database();
         trialDatabase.data = MusicData.create(new File("test\\resources"));
         Database database = Database.deserialize("test\\resources\\database\\database.ser");
         Assert.assertEquals(database.data, trialDatabase.data);
     }
-    @Test private static void testDataSearch() throws IOException, UnsupportedTagException,
+    @Test public void testDataSearch() throws IOException, UnsupportedTagException,
             InvalidDataException {
         ArrayList<File> data = MusicData.create(new File("test\\resources"));
 

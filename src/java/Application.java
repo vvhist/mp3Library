@@ -1,6 +1,7 @@
 import org.apache.commons.cli.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class Application {
@@ -14,31 +15,45 @@ public class Application {
         try {
             return parser.parse(options, args);
         } catch (ParseException e) {
-            System.err.println("Parse error");
-            System.exit(1);
+            return null;
         }
-        return null;
     }
     static boolean firstArgumentIsFolder(String[] args) {
-        if (args.length == 0 || !new File(args[0]).isDirectory()) {
-            System.out.println("Please enter the path of your MusicFolder!");
-            return false;
-        }
-        return true;
+        return args.length != 0 && new File(args[0]).isDirectory();
     }
     public static void main(String[] args) {
         CommandLine cmd = createCommandLineOptions(args);
-        if (cmd == null || !firstArgumentIsFolder(args)) return;
+        if (cmd == null) {
+            System.err.println("Parse error");
+            return;
+        }
+        if (!firstArgumentIsFolder(args)) {
+            System.out.println("Please enter the path of your MusicFolder!");
+            return;
+        }
         File musicFolder = new File(args[0]);
         String databasePath = musicFolder + File.separator + "database.ser";
 
         if (!new File(databasePath).exists() || cmd.hasOption("rebuild")) {
             ArrayList<File> data = MusicData.create(musicFolder);
-            if (data == null) return;
-            Database.serialize(databasePath, data);
+            if (data == null) {
+                System.out.println("No .mp3 files were found!");
+                return;
+            }
+            try {
+                Database.serialize(databasePath, data);
+                System.out.println("Data is saved in " + databasePath);
+            } catch (IOException e) {
+                System.err.println("Error: the program failed to save the data in " + databasePath);
+                return;
+            }
         }
         if (cmd.hasOption("search")) {      // Add your search keys in DataSearch.createTagsMap()
             Database database = Database.deserialize(databasePath);
+            if (database == null) {
+                System.err.println("Error: the program failed to get the data from " + databasePath);
+                return;
+            }
             for (String name : DataSearch.getResults(cmd.getOptionValues("search"), database.data)) {
                 System.out.println(name);
             }
