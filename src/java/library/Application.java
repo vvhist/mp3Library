@@ -37,16 +37,16 @@ public class Application {
 
         CommandLine cmd = createCommandLineOptions(args);
         File musicFolder = new File(args[0]);
-        if (!musicFolder.isDirectory())      throw new IllegalArgumentException();
+        if (!musicFolder.isDirectory())         throw new IllegalArgumentException();
         File databaseLocation = new File(musicFolder, "database.ser");
 
         if (!databaseLocation.exists() || cmd.hasOption("rebuild")) {
             Database database = MusicData.create(musicFolder);
-            if (database.data.isEmpty())     throw new Mp3FilesNotFoundException();
+            if (database.getData().isEmpty())   throw new Mp3FilesNotFoundException();
             Database.serialize(database, databaseLocation);
             System.out.println("Data was saved in " + databaseLocation);
         }
-        if (cmd.hasOption("search")) {  // Add your search keys in library.MusicData.addToDatabase()
+        if (cmd.hasOption("search")) {                  // Add your search keys in library.TagEntry
             Database database = Database.deserialize(databaseLocation);
             for (Object result : DataSearch.getResults(database, cmd)) {
                 System.out.println(result);

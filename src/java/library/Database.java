@@ -1,12 +1,34 @@
 package library;
 
+import com.mpatric.mp3agic.InvalidDataException;
+import com.mpatric.mp3agic.UnsupportedTagException;
+
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class Database implements Serializable {
 
-    public HashMap<String, ArrayList<String>> data;
+    private static final long serialVersionUID = 1657573116580191624L;
+    private ArrayList<TagEntry> data;
+
+    public Database() {
+        data = new ArrayList<>();
+    }
+
+    public ArrayList<TagEntry> getData() {
+        return data;
+    }
+
+    public void add(File file) {
+        TagEntry entry = new TagEntry();
+        try {
+            entry.setTag(file);
+        } catch (IOException | UnsupportedTagException | InvalidDataException e) {
+            System.err.println("Error: the program failed to process " + file);
+            return;
+        }
+        data.add(entry);
+    }
 
     public static void serialize(Database database, File location) throws IOException {
         FileOutputStream fileOut = new FileOutputStream(location);

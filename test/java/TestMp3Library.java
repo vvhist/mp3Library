@@ -1,7 +1,4 @@
-import library.Application;
-import library.DataSearch;
-import library.Database;
-import library.MusicData;
+import library.*;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 import org.testng.Assert;
@@ -11,41 +8,49 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 
 public class TestMp3Library {
 
+    private static TagEntry setTags(String[] tags) {
+        TagEntry entry = new TagEntry();
+        entry.setTag("FileName", tags[0]);
+        entry.setTag("Artist",   tags[1]);
+        entry.setTag("Title",    tags[2]);
+        entry.setTag("Album",    tags[3]);
+        entry.setTag("Genre",    tags[4]);
+        entry.setTag("Year",     tags[5]);
+        return entry;
+    }
+
     @Test public void testDataCreation() throws IOException, ClassNotFoundException {
-        File folder   = new File("test\\resources");
-        File location = new File("test\\resources\\database\\database.ser");
-        HashMap<String, ArrayList<String>> trialData    = MusicData.create(folder).data;
-        HashMap<String, ArrayList<String>> expectedData = Database.deserialize(location).data;
+        File folder = new File("test\\resources");
+        ArrayList<TagEntry> trialData    = MusicData.create(folder).getData();
+        ArrayList<TagEntry> expectedData = new ArrayList<>();
 
-        expectedData.put("FileName", new ArrayList<>());
-        expectedData.put("Artist",   new ArrayList<>());
-        expectedData.put("Title",    new ArrayList<>());
-        expectedData.put("Album",    new ArrayList<>());
-        expectedData.put("Genre",    new ArrayList<>());
-        expectedData.put("Year",     new ArrayList<>());
+        String[] tags = new String[] {"ID3v23withSuffixInUPPERCASE.MP3", "Artist 2", "Five",
+                                      "Album 2", "Classic Rock", "2000"};
+        expectedData.add(setTags(tags));
 
-        String[] fileName = {"ID3v23withSuffixInUPPERCASE.MP3", "noTags.mp3", "ID3v1tags.mp3",
-                             "ID3v22tags.mp3", "ID3v23tags.mp3", "ID3v24tags.mp3",
-                             "ID3v24tagsSub.mp3"};
-        String[] artist   = {"Artist 2", null, "Artist 1", "Artist 1", "Artist 1", "Artist 2",
-                             "Artist 2"};
-        String[] title    = {"Five", null, "One", "Two", "Three", "Four", "Six"};
-        String[] album    = {"Album 2", null, "Album 1", "Album 1", "Album 1", "Album 2", "Album 2"};
-        String[] genre    = {"Classic Rock", null, "Classic Rock", "Classic Rock", "Classic Rock",
-                             "Classic Rock", "Classic Rock"};
-        String[] year     = {"2000", null, "2000", "2000", "2000", "2000", "2000"};
+        tags = new String[] {"noTags.mp3", null, null, null, null, null};
+        expectedData.add(setTags(tags));
 
-        Collections.addAll(expectedData.get("FileName"), fileName);
-        Collections.addAll(expectedData.get("Artist"),   artist);
-        Collections.addAll(expectedData.get("Title"),    title);
-        Collections.addAll(expectedData.get("Album"),    album);
-        Collections.addAll(expectedData.get("Genre"),    genre);
-        Collections.addAll(expectedData.get("Year"),     year);
+        tags = new String[] {"ID3v1tags.mp3", "Artist 1", "One", "Album 1", "Classic Rock", "2000"};
+        expectedData.add(setTags(tags));
+
+        tags = new String[] {"ID3v22tags.mp3", "Artist 1", "Two", "Album 1", "Classic Rock", "2000"};
+        expectedData.add(setTags(tags));
+
+        tags = new String[] {"ID3v23tags.mp3", "Artist 1", "Three", "Album 1", "Classic Rock",
+                             "2000"};
+        expectedData.add(setTags(tags));
+
+        tags = new String[] {"ID3v24tags.mp3", "Artist 2", "Four", "Album 2", "Classic Rock",
+                             "2000"};
+        expectedData.add(setTags(tags));
+
+        tags = new String[] {"ID3v24tagsSub.mp3", "Artist 2", "Six", "Album 2", "Classic Rock",
+                             "2000"};
+        expectedData.add(setTags(tags));
 
         Assert.assertEquals(trialData, expectedData);
     }
@@ -69,11 +74,9 @@ public class TestMp3Library {
     @Test public void testDeserialization() throws IOException, ClassNotFoundException {
         File location = new File("test\\resources\\database\\database.ser");
         Database trialDatabase = Database.deserialize(location);
+        Database expectedDatabase = MusicData.create(new File("test\\resources"));
 
-        Database expectedDatabase = new Database();
-        expectedDatabase.data = MusicData.create(new File("test\\resources")).data;
-
-        Assert.assertEquals(trialDatabase.data, expectedDatabase.data);
+        Assert.assertEquals(trialDatabase.getData(), expectedDatabase.getData());
     }
 
     @Test public void testDataSearch() throws ParseException {
