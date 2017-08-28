@@ -37,12 +37,13 @@ public class MusicData {
 
         Mp3File track  = new Mp3File(file);
         ID3Wrapper tag = new ID3Wrapper(track.getId3v1Tag(), track.getId3v2Tag());
-        pstmt.setString(1, file.getName());
-        pstmt.setString(2, tag.getArtist());
-        pstmt.setString(3, tag.getTitle());
-        pstmt.setString(4, tag.getAlbum());
-        pstmt.setString(5, getGenre(track));
-        pstmt.setString(6, tag.getYear());
+        pstmt.setString(1, file.getName());     // Used in output
+        pstmt.setString(2, tag.getArtist() == null ? null : tag.getArtist().toLowerCase());
+        pstmt.setString(3, tag.getTitle()  == null ? null : tag.getTitle().toLowerCase());
+        pstmt.setString(4, tag.getTitle());     // Used in output
+        pstmt.setString(5, tag.getAlbum()  == null ? null : tag.getAlbum().toLowerCase());
+        pstmt.setString(6, getGenre(track) == null ? null : getGenre(track).toLowerCase());
+        pstmt.setString(7, tag.getYear()   == null ? null : tag.getYear().toLowerCase());
         pstmt.executeUpdate();
     }
 
@@ -81,12 +82,14 @@ public class MusicData {
                 "fileName VARCHAR(10000) NOT NULL," +
                 "artist VARCHAR(10000)," +
                 "title VARCHAR(10000)," +
+                "titleInMixedCase VARCHAR(10000)," +
                 "album VARCHAR(10000)," +
                 "genre VARCHAR(10000)," +
                 "year VARCHAR(10000)," +
                 "PRIMARY KEY (fileName))");
         PreparedStatement pstmt = con.prepareStatement("INSERT INTO mp3Lib" +
-                "(fileName, artist, title, album, genre, year) VALUES (?, ?, ?, ?, ?, ?)");
+                "(fileName, artist, title, titleInMixedCase, album, genre, year) VALUES " +
+                "(?, ?, ?, ?, ?, ?, ?)");
         addMp3FromFolder(pstmt, folder);
     }
 }

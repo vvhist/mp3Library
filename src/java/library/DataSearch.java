@@ -25,6 +25,12 @@ public class DataSearch {
         return searchQuery;
     }
 
+    private static void convertValuesToLowercase(ArrayList<String> searchQuery) {
+        for (int i = 1; i < searchQuery.size(); i +=2) {
+            searchQuery.set(i, searchQuery.get(i).toLowerCase());
+        }
+    }
+
     private static String convertToSQL(ArrayList<String> searchQuery) {
         for (int i = 1; i < searchQuery.size(); i += 2) {
             searchQuery.add(i, "='");
@@ -49,6 +55,7 @@ public class DataSearch {
 
     public static ArrayList<String> getResults(Connection con, CommandLine cmd) throws SQLException {
         ArrayList<String> searchQuery = removeNonExistingKeys(con, cmd);
+        convertValuesToLowercase(searchQuery);
         String conditions = convertToSQL(searchQuery);
 
         if (cmd.hasOption("path")) {
@@ -57,8 +64,9 @@ public class DataSearch {
         } else {
             ArrayList<String> selectedData = new ArrayList<>();
 
-            String sql = "SELECT title FROM mp3Lib WHERE " + conditions + " AND title IS NOT NULL";
-            selectedData.addAll(collectResults(con, sql, "title"));
+            String sql = "SELECT titleInMixedCase FROM mp3Lib WHERE " + conditions
+                    + " AND title IS NOT NULL";
+            selectedData.addAll(collectResults(con, sql, "titleInMixedCase"));
 
             sql = "SELECT fileName FROM mp3Lib WHERE " + conditions + " AND title IS NULL";
             selectedData.addAll(collectResults(con, sql, "fileName"));
