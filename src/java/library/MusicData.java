@@ -8,10 +8,7 @@ import com.mpatric.mp3agic.UnsupportedTagException;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class MusicData {
 
@@ -69,6 +66,30 @@ public class MusicData {
         } else {
             return null;
         }
+    }
+
+    private static void deleteFolder(File folder) {
+        File[] files = folder.listFiles();
+        for(File file: files != null ? files : new File[0]) {
+            if(file.isDirectory()) {
+                deleteFolder(file);
+            } else {
+                file.delete();
+            }
+        }
+        folder.delete();
+    }
+
+    public static boolean hasMp3Files(Connection con) throws SQLException {
+        Statement stmt = con.createStatement();
+        ResultSet resultSet = stmt.executeQuery("SELECT * FROM mp3Lib");
+        return resultSet.isBeforeFirst();
+    }
+
+    public static void delete(Connection con, File folder) throws SQLException {
+        Statement stmt = con.createStatement();
+        stmt.execute("SHUTDOWN");
+        deleteFolder(folder);
     }
 
     public static void rebuild(Connection con, File folder) throws SQLException {

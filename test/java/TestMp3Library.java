@@ -1,6 +1,4 @@
 import library.*;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.ParseException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -12,16 +10,18 @@ import java.util.ArrayList;
 
 public class TestMp3Library {
 
-    @Test public void testDataSearch() throws ParseException, SQLException {
-        String url = "jdbc:hsqldb:file:C:/Gradle/mp3Library/test/resources/database/Data";
-        Connection con = DriverManager.getConnection(url, "user", "");
-        MusicData.create(con, new File("test/resources"));
+    @Test public void testDataSearch() throws SQLException {
+        File musicFolder = new File("test/resources");
+        File dbLocation = new File(musicFolder, "database/Data");
+        Connection con = DriverManager.getConnection("jdbc:hsqldb:file:" + dbLocation, "user", "");
+        MusicData.create(con, musicFolder);
 
-        String[] args = new String[] {"test/resources", "--search", "Year=2000", "i=j",
-                                      "Genre=Classic Rock"};
-        CommandLine cmd = Application.createCommandLineOptions(args);
-
-        ArrayList<String> trialResults = DataSearch.getResults(con, cmd);
+        ArrayList<String> searchValues = new ArrayList<>();
+        searchValues.add("Year");
+        searchValues.add("2000");
+        searchValues.add("Genre");
+        searchValues.add("Classic Rock");
+        ArrayList<String> trialResults = DataSearch.getResults(con, searchValues, false);
         ArrayList<String> expectedResults = new ArrayList<>();
         expectedResults.add("One");
         expectedResults.add("Two");
@@ -32,10 +32,12 @@ public class TestMp3Library {
 
         Assert.assertEquals(trialResults, expectedResults);
 
-        args = new String[] {"test/resources", "--search", "Artist=Artist 2", "Album=Album 2"};
-        cmd = Application.createCommandLineOptions(args);
-
-        trialResults = DataSearch.getResults(con, cmd);
+        searchValues = new ArrayList<>();
+        searchValues.add("Artist");
+        searchValues.add("Artist 2");
+        searchValues.add("Album");
+        searchValues.add("Album 2");
+        trialResults = DataSearch.getResults(con, searchValues, false);
         expectedResults = new ArrayList<>();
         expectedResults.add("Five");
         expectedResults.add("Four");
@@ -43,10 +45,10 @@ public class TestMp3Library {
 
         Assert.assertEquals(trialResults, expectedResults);
 
-        args = new String[] {"test/resources", "--search", "Title=Five", "--path"};
-        cmd = Application.createCommandLineOptions(args);
-
-        trialResults = DataSearch.getResults(con, cmd);
+        searchValues = new ArrayList<>();
+        searchValues.add("Title");
+        searchValues.add("Five");
+        trialResults = DataSearch.getResults(con, searchValues, true);
         expectedResults = new ArrayList<>();
         expectedResults.add("ID3v23withSuffixInUPPERCASE.MP3");
 
