@@ -1,10 +1,8 @@
 package library;
 
-import com.sun.xml.internal.bind.v2.TODO;
-
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ItemEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -83,6 +81,20 @@ public class SwingListeners {
                 view.getTitleTextField().setEnabled(false);
             }
         });
+
+        KeyAdapter searchOnEnter = new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    view.getSearchButton().doClick();
+                }
+            }
+        };
+        view.getArtistTextField().addKeyListener(searchOnEnter);
+        view.getAlbumTextField().addKeyListener(searchOnEnter);
+        view.getGenreTextField().addKeyListener(searchOnEnter);
+        view.getYearTextField().addKeyListener(searchOnEnter);
+        view.getTitleTextField().addKeyListener(searchOnEnter);
     }
 
     private Runnable databaseCreator = () -> {
