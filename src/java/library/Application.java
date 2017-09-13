@@ -1,8 +1,21 @@
 package library;
 
 import javax.swing.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class Application {
+
+    private static Connection con;
+
+    public static void setConnection() throws SQLException {
+        con = DriverManager.getConnection("jdbc:hsqldb:file:" + MusicData.getDatabase(), "user", "");
+    }
+
+    public static Connection getConnection() {
+        return con;
+    }
 
     public static void main(String[] args) {
         try {

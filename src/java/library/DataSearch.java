@@ -1,6 +1,5 @@
 package library;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -8,52 +7,40 @@ import java.util.ArrayList;
 
 public class DataSearch {
 
-    private static void convertValuesToLowercase(ArrayList<String> searchQuery) {
-        for (int i = 1; i < searchQuery.size(); i +=2) {
-            searchQuery.set(i, searchQuery.get(i).toLowerCase());
-        }
+    private static ArrayList<String> query;
+
+    public static void setQuery(ArrayList<String> query) {
+        DataSearch.query = query;
     }
 
-    private static String convertToSQL(ArrayList<String> searchQuery) {
-        for (int i = 1; i < searchQuery.size(); i += 2) {
-            searchQuery.add(i, "='");
+    private static String convertQueryToSQL() {
+        for (int i = 1; i < query.size(); i += 2) {
+            query.set(i, query.get(i).toLowerCase());
+            query.add(i, "='");
             i += 2;
-            searchQuery.add(i, "' AND ");
+            query.add(i, "' AND ");
         }
-        searchQuery.set(searchQuery.size() - 1, "'");
-        return String.join("", searchQuery);
+        query.set(query.size() - 1, "'");
+        return String.join("", query);
     }
 
-    private static ArrayList<String> collectResults(Connection con, String sql, String column)
-            throws SQLException {
-
-        ArrayList<String> selectedData = new ArrayList<>();
-        Statement stmt = con.createStatement();
-        ResultSet results = stmt.executeQuery(sql);
-        while (results.next()) {
-            selectedData.add(results.getString(column));
+    public static ResultSet getResults(String column) throws SQLException {
+        String sqlConditions = convertQueryToSQL();
+        String sql;
+        switch (column) {
+            case "fileName":
+                sql = "SELECT fileName FROM mp3Lib WHERE ";
+                break;
+            case "title":
+                sql = "SELECT COALESCE (NULLIF (title, ''), fileName) FROM mp3Lib WHERE ";
+                break;
+            case "all":
+                sql = "SELECT fileName, artist, title, album, genre, year FROM mp3Lib WHERE ";
+                break;
+            default:
+                throw new IllegalStateException("Impossible case");
         }
-        return selectedData;
-    }
-
-    public static ArrayList<String> getResults(Connection con, ArrayList<String> searchQuery,
-                                               boolean isFileNameNeeded) throws SQLException {
-        convertValuesToLowercase(searchQuery);
-        String conditions = convertToSQL(searchQuery);
-
-        if (isFileNameNeeded) {
-            String sql = "SELECT fileName FROM mp3Lib WHERE " + conditions;
-            return collectResults(con, sql, "fileName");
-        } else {
-            ArrayList<String> selectedData = new ArrayList<>();
-
-            String sql = "SELECT titleInMixedCase FROM mp3Lib WHERE " + conditions
-                    + " AND title IS NOT NULL";
-            selectedData.addAll(collectResults(con, sql, "titleInMixedCase"));
-
-            sql = "SELECT fileName FROM mp3Lib WHERE " + conditions + " AND title IS NULL";
-            selectedData.addAll(collectResults(con, sql, "fileName"));
-            return selectedData;
-        }
+        Statement stmt = Application.getConnection().createStatement();
+        return stmt.executeQuery(sql + sqlConditions);
     }
 }

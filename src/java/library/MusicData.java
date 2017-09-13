@@ -12,6 +12,24 @@ import java.sql.*;
 
 public class MusicData {
 
+    private static File musicFolder;
+
+    public static void setMusicFolder(File musicFolder) {
+        MusicData.musicFolder = musicFolder;
+    }
+
+    public static File getMusicFolder() {
+        return musicFolder;
+    }
+
+    public static File getDatabase() {
+        return new File(musicFolder, "libraryData/Data");
+    }
+
+    public static File getDatabaseLocation() {
+        return getDatabase().getParentFile();
+    }
+
     private static void addMp3FromFolder(PreparedStatement pstmt, File folder) throws SQLException {
         FileFilter mp3Files = pathname -> pathname.isDirectory()
                 || pathname.getName().toLowerCase().endsWith(".mp3");
@@ -34,13 +52,16 @@ public class MusicData {
 
         Mp3File track  = new Mp3File(file);
         ID3Wrapper tag = new ID3Wrapper(track.getId3v1Tag(), track.getId3v2Tag());
-        pstmt.setString(1, file.getName());     // Used in output
-        pstmt.setString(2, tag.getArtist() == null ? null : tag.getArtist().toLowerCase());
-        pstmt.setString(3, tag.getTitle()  == null ? null : tag.getTitle().toLowerCase());
-        pstmt.setString(4, tag.getTitle());     // Used in output
-        pstmt.setString(5, tag.getAlbum()  == null ? null : tag.getAlbum().toLowerCase());
-        pstmt.setString(6, getGenre(track) == null ? null : getGenre(track).toLowerCase());
-        pstmt.setString(7, tag.getYear()   == null ? null : tag.getYear().toLowerCase());
+        pstmt.setString(1, file.getName());
+        pstmt.setString(2, tag.getArtist());
+        pstmt.setString(3, tag.getTitle());
+        pstmt.setString(4, tag.getAlbum());
+        pstmt.setString(5, getGenre(track));
+        pstmt.setString(6, tag.getYear());
+        pstmt.setString(7, tag.getArtist() == null ? null : tag.getArtist().toLowerCase());
+        pstmt.setString(8, tag.getTitle()  == null ? null : tag.getTitle().toLowerCase());
+        pstmt.setString(9, tag.getAlbum()  == null ? null : tag.getAlbum().toLowerCase());
+        pstmt.setString(10, getGenre(track) == null ? null : getGenre(track).toLowerCase());
         pstmt.executeUpdate();
     }
 
@@ -80,37 +101,43 @@ public class MusicData {
         folder.delete();
     }
 
-    public static boolean hasMp3Files(Connection con) throws SQLException {
-        Statement stmt = con.createStatement();
+    public static boolean hasMp3Files() throws SQLException {
+        Statement stmt = Application.getConnection().createStatement();
         ResultSet resultSet = stmt.executeQuery("SELECT * FROM mp3Lib");
         return resultSet.isBeforeFirst();
     }
 
-    public static void delete(Connection con, File folder) throws SQLException {
-        Statement stmt = con.createStatement();
+    public static void delete() throws SQLException {
+        Statement stmt = Application.getConnection().createStatement();
         stmt.execute("SHUTDOWN");
-        deleteFolder(folder);
+        deleteFolder(getDatabaseLocation());
     }
 
-    public static void rebuild(Connection con, File folder) throws SQLException {
-        con.createStatement().executeUpdate("DROP TABLE mp3Lib");
-        create(con, folder);
+    public static void rebuild() throws SQLException {
+        Statement stmt = Application.getConnection().createStatement();
+        stmt.executeUpdate("DROP TABLE mp3Lib");
+        create();
     }
 
-    public static void create(Connection con, File folder) throws SQLException {
+    public static void create() throws SQLException {
+        Connection con = Application.getConnection();
         Statement stmt = con.createStatement();
         stmt.executeUpdate("CREATE TABLE mp3Lib (" +
                 "fileName VARCHAR(10000) NOT NULL," +
                 "artist VARCHAR(10000)," +
                 "title VARCHAR(10000)," +
-                "titleInMixedCase VARCHAR(10000)," +
                 "album VARCHAR(10000)," +
                 "genre VARCHAR(10000)," +
                 "year VARCHAR(10000)," +
+                "artistInLowerCase VARCHAR(10000)," +
+                "titleInLowerCase VARCHAR(10000)," +
+                "albumInLowerCase VARCHAR(10000)," +
+                "genreInLowerCase VARCHAR(10000)," +
                 "PRIMARY KEY (fileName))");
         PreparedStatement pstmt = con.prepareStatement("INSERT INTO mp3Lib" +
-                "(fileName, artist, title, titleInMixedCase, album, genre, year) VALUES " +
-                "(?, ?, ?, ?, ?, ?, ?)");
-        addMp3FromFolder(pstmt, folder);
+                "(fileName, artist, title, album, genre, year," +
+                "artistInLowerCase, titleInLowerCase, albumInLowerCase, genreInLowerCase) VALUES" +
+                "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        addMp3FromFolder(pstmt, musicFolder);
     }
 }

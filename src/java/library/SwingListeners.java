@@ -2,19 +2,18 @@ package library;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Vector;
 
 public class SwingListeners {
 
     private SwingView view;
-    private File musicFolder;
-    private File dbLocation;
+    private String column = "title";
 
     public SwingListeners(SwingView swingView) {
         this.view = swingView;
@@ -26,11 +25,10 @@ public class SwingListeners {
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             int returnValue = chooser.showDialog(null, "Select");
             if (returnValue == JFileChooser.APPROVE_OPTION) {
-                musicFolder = chooser.getSelectedFile();
-                dbLocation = new File(musicFolder, "libraryData/Data");
+                MusicData.setMusicFolder(chooser.getSelectedFile());
                 view.getPathLabel().setVisible(true);
-                view.getPathLabel().setText(musicFolder.getPath());
-                if (!dbLocation.getParentFile().exists()) {
+                view.getPathLabel().setText(MusicData.getMusicFolder().getPath());
+                if (!MusicData.getDatabaseLocation().exists()) {
                     enableView(false, "Creating a database in");
                     switchToWaitingMode(true);
                     new Thread(databaseCreator).start();
@@ -41,31 +39,29 @@ public class SwingListeners {
         });
 
         view.getUpdateButton().addActionListener(e -> {
-            musicFolder = new File(view.getPathLabel().getText());
-            dbLocation = new File(musicFolder, "libraryData/Data");
             enableView(false, "Updating the database in");
             switchToWaitingMode(true);
             new Thread(databaseUpdater).start();
-        });
-
-        view.getDisplayAllButton().addActionListener(e -> {
-            // TODO: create a model for this button
         });
 
         view.getSearchButton().addActionListener(e -> {
             if (!Objects.equals(view.getOutputTextArea().getText(), "")) {
                 view.getOutputTextArea().setText("");
             }
-            musicFolder = new File(view.getPathLabel().getText());
-            dbLocation = new File(musicFolder, "libraryData/Data");
             try {
-                Connection con = DriverManager.getConnection("jdbc:hsqldb:file:"
-                        + dbLocation, "user", "");
+                Application.setConnection();
                 ArrayList<String> searchPairs = getSearchPairs();
                 if (searchPairs.size() >= 2) {
-                    for (String result : DataSearch.getResults(con, searchPairs,
-                            view.getFileNamesCheckBox().isSelected())) {
-                        view.getOutputTextArea().append(result + "\n");
+                    DataSearch.setQuery(searchPairs);
+                    ResultSet results = DataSearch.getResults(column);
+                    if (Objects.equals(column, "all")) {
+                        view.setTable(createTable(results));
+                        view.getScrollPane().setViewportView(view.getTable());
+                    } else {
+                        while (results.next()) {
+                            view.getOutputTextArea().append(results.getString(1) + "\n");
+                        }
+                        view.getScrollPane().setViewportView(view.getOutputTextArea());
                     }
                 }
             } catch (SQLException ex) {
@@ -74,12 +70,19 @@ public class SwingListeners {
             }
         });
 
-        view.getFileNamesCheckBox().addItemListener(e -> {
-            if (e.getStateChange() == ItemEvent.SELECTED) {
-                view.getTitleTextField().setEnabled(true);
-            } else {
-                view.getTitleTextField().setEnabled(false);
-            }
+        view.getTitlesRadioButton().addActionListener(e -> {
+            view.getTitleTextField().setEnabled(false);
+            column = "title";
+        });
+
+        view.getFileNamesRadioButton().addActionListener(e -> {
+            view.getTitleTextField().setEnabled(true);
+            column = "fileName";
+        });
+
+        view.getDisplayAllRadioButton().addActionListener(e -> {
+            view.getTitleTextField().setEnabled(true);
+            column = "all";
         });
 
         KeyAdapter searchOnEnter = new KeyAdapter() {
@@ -99,11 +102,10 @@ public class SwingListeners {
 
     private Runnable databaseCreator = () -> {
         try {
-            Connection con = DriverManager.getConnection("jdbc:hsqldb:file:"
-                    + dbLocation, "user", "");
-            MusicData.create(con, musicFolder);
-            if (!MusicData.hasMp3Files(con)) {
-                MusicData.delete(con, dbLocation.getParentFile());
+            Application.setConnection();
+            MusicData.create();
+            if (!MusicData.hasMp3Files()) {
+                MusicData.delete();
                 view.getSelectButton().setEnabled(true);
                 view.getMsgLabel().setText("No MP3 files were found in");
             } else {
@@ -118,9 +120,8 @@ public class SwingListeners {
 
     private Runnable databaseUpdater = () -> {
         try {
-            Connection con = DriverManager.getConnection("jdbc:hsqldb:file:"
-                    + dbLocation, "user", "");
-            MusicData.rebuild(con, musicFolder);
+            Application.setConnection();
+            MusicData.rebuild();
             enableView(true, "The database was updated in");
         } catch (SQLException ex) {
             view.getPathLabel().setVisible(false);
@@ -130,7 +131,7 @@ public class SwingListeners {
     };
 
     private void enableView(boolean isEnabled, String message) {
-        enableComponents(view.getMainPanel(), isEnabled);
+        enableComponents(view.$$$getRootComponent$$$(), isEnabled);
         if (isEnabled) {
             view.getTitleTextField().setEnabled(false);
         } else {
@@ -142,9 +143,9 @@ public class SwingListeners {
 
     private void switchToWaitingMode(boolean isInWaitingMode) {
         if (isInWaitingMode) {
-            view.getMainPanel().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            view.$$$getRootComponent$$$().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         } else {
-            view.getMainPanel().setCursor(null);
+            view.$$$getRootComponent$$$().setCursor(null);
         }
         view.getProgressBar().setEnabled(isInWaitingMode);
         view.getProgressBar().setVisible(isInWaitingMode);
@@ -162,15 +163,15 @@ public class SwingListeners {
     private ArrayList<String> getSearchPairs() {
         ArrayList<String> searchValues = new ArrayList<>();
         if (!view.getArtistTextField().getText().isEmpty()) {
-            searchValues.add("Artist");
+            searchValues.add("ArtistInLowerCase");
             searchValues.add(view.getArtistTextField().getText());
         }
         if (!view.getAlbumTextField().getText().isEmpty()) {
-            searchValues.add("Album");
+            searchValues.add("AlbumInLowerCase");
             searchValues.add(view.getAlbumTextField().getText());
         }
         if (!view.getGenreTextField().getText().isEmpty()) {
-            searchValues.add("Genre");
+            searchValues.add("GenreInLowerCase");
             searchValues.add(view.getGenreTextField().getText());
         }
         if (!view.getYearTextField().getText().isEmpty()) {
@@ -178,9 +179,29 @@ public class SwingListeners {
             searchValues.add(view.getYearTextField().getText());
         }
         if (view.getTitleTextField().isEnabled() && !view.getTitleTextField().getText().isEmpty()) {
-            searchValues.add("Title");
+            searchValues.add("TitleInLowerCase");
             searchValues.add(view.getTitleTextField().getText());
         }
         return searchValues;
+    }
+
+    private JTable createTable(ResultSet results) throws SQLException {
+        int numberOfColumns = results.getMetaData().getColumnCount();
+        Vector<Vector<String>> rowData = new Vector<>();
+        while (results.next()) {
+            Vector<String> row = new Vector<>(numberOfColumns);
+            for (int i = 1; i <= numberOfColumns; i++) {
+                row.add(results.getString(i));
+            }
+            rowData.add(row);
+        }
+        Vector<String> columnNames = new Vector<>(numberOfColumns);
+        for (int i = 1; i <= numberOfColumns; i++) {
+            columnNames.add(results.getMetaData().getColumnName(i));
+        }
+        JTable table = new JTable(rowData, columnNames);
+        table.setColumnSelectionAllowed(true);
+        table.setAutoCreateRowSorter(true);
+        return table;
     }
 }
