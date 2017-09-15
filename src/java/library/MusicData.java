@@ -58,10 +58,6 @@ public class MusicData {
         pstmt.setString(4, tag.getAlbum());
         pstmt.setString(5, getGenre(track));
         pstmt.setString(6, tag.getYear());
-        pstmt.setString(7, tag.getArtist() == null ? null : tag.getArtist().toLowerCase());
-        pstmt.setString(8, tag.getTitle()  == null ? null : tag.getTitle().toLowerCase());
-        pstmt.setString(9, tag.getAlbum()  == null ? null : tag.getAlbum().toLowerCase());
-        pstmt.setString(10, getGenre(track) == null ? null : getGenre(track).toLowerCase());
         pstmt.executeUpdate();
     }
 
@@ -122,6 +118,7 @@ public class MusicData {
     public static void create() throws SQLException {
         Connection con = Application.getConnection();
         Statement stmt = con.createStatement();
+        stmt.execute("SET IGNORECASE TRUE");
         stmt.executeUpdate("CREATE TABLE mp3Lib (" +
                 "fileName VARCHAR(10000) NOT NULL," +
                 "artist VARCHAR(10000)," +
@@ -129,15 +126,10 @@ public class MusicData {
                 "album VARCHAR(10000)," +
                 "genre VARCHAR(10000)," +
                 "year VARCHAR(10000)," +
-                "artistInLowerCase VARCHAR(10000)," +
-                "titleInLowerCase VARCHAR(10000)," +
-                "albumInLowerCase VARCHAR(10000)," +
-                "genreInLowerCase VARCHAR(10000)," +
                 "PRIMARY KEY (fileName))");
         PreparedStatement pstmt = con.prepareStatement("INSERT INTO mp3Lib" +
-                "(fileName, artist, title, album, genre, year," +
-                "artistInLowerCase, titleInLowerCase, albumInLowerCase, genreInLowerCase) VALUES" +
-                "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                "(fileName, artist, title, album, genre, year)" +
+                "VALUES (?, ?, ?, ?, ?, ?)");
         addMp3FromFolder(pstmt, musicFolder);
     }
 }

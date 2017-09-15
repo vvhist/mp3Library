@@ -163,15 +163,15 @@ public class SwingListeners {
     private ArrayList<String> getSearchPairs() {
         ArrayList<String> searchValues = new ArrayList<>();
         if (!view.getArtistTextField().getText().isEmpty()) {
-            searchValues.add("ArtistInLowerCase");
+            searchValues.add("Artist");
             searchValues.add(view.getArtistTextField().getText());
         }
         if (!view.getAlbumTextField().getText().isEmpty()) {
-            searchValues.add("AlbumInLowerCase");
+            searchValues.add("Album");
             searchValues.add(view.getAlbumTextField().getText());
         }
         if (!view.getGenreTextField().getText().isEmpty()) {
-            searchValues.add("GenreInLowerCase");
+            searchValues.add("Genre");
             searchValues.add(view.getGenreTextField().getText());
         }
         if (!view.getYearTextField().getText().isEmpty()) {
@@ -179,7 +179,7 @@ public class SwingListeners {
             searchValues.add(view.getYearTextField().getText());
         }
         if (view.getTitleTextField().isEnabled() && !view.getTitleTextField().getText().isEmpty()) {
-            searchValues.add("TitleInLowerCase");
+            searchValues.add("Title");
             searchValues.add(view.getTitleTextField().getText());
         }
         return searchValues;

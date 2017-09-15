@@ -19,7 +19,7 @@ public class TestMp3Library {
         ArrayList<String> searchValues = new ArrayList<>();
         searchValues.add("Year");
         searchValues.add("2000");
-        searchValues.add("GenreInLowerCase");
+        searchValues.add("Genre");
         searchValues.add("Classic Rock");
         DataSearch.setQuery(searchValues);
         ResultSet results = DataSearch.getResults("title");
@@ -38,9 +38,9 @@ public class TestMp3Library {
         Assert.assertEquals(trialResults, expectedResults);
 
         searchValues = new ArrayList<>();
-        searchValues.add("ArtistInLowerCase");
+        searchValues.add("Artist");
         searchValues.add("Artist 2");
-        searchValues.add("AlbumInLowerCase");
+        searchValues.add("Album");
         searchValues.add("Album 2");
         DataSearch.setQuery(searchValues);
         results = DataSearch.getResults("title");
@@ -56,7 +56,7 @@ public class TestMp3Library {
         Assert.assertEquals(trialResults, expectedResults);
 
         searchValues = new ArrayList<>();
-        searchValues.add("TitleInLowerCase");
+        searchValues.add("Title");
         searchValues.add("Five");
         DataSearch.setQuery(searchValues);
         results = DataSearch.getResults("fileName");

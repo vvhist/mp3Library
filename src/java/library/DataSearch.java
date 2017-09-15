@@ -15,7 +15,6 @@ public class DataSearch {
 
     private static String convertQueryToSQL() {
         for (int i = 1; i < query.size(); i += 2) {
-            query.set(i, query.get(i).toLowerCase());
             query.add(i, "='");
             i += 2;
             query.add(i, "' AND ");
@@ -25,22 +24,16 @@ public class DataSearch {
     }
 
     public static ResultSet getResults(String column) throws SQLException {
-        String sqlConditions = convertQueryToSQL();
-        String sql;
         switch (column) {
-            case "fileName":
-                sql = "SELECT fileName FROM mp3Lib WHERE ";
-                break;
             case "title":
-                sql = "SELECT COALESCE (NULLIF (title, ''), fileName) FROM mp3Lib WHERE ";
+                column = "COALESCE (NULLIF (title, ''), fileName)";
                 break;
             case "all":
-                sql = "SELECT fileName, artist, title, album, genre, year FROM mp3Lib WHERE ";
+                column = "*";
                 break;
-            default:
-                throw new IllegalStateException("Impossible case");
         }
         Statement stmt = Application.getConnection().createStatement();
-        return stmt.executeQuery(sql + sqlConditions);
+        String conditions = convertQueryToSQL();
+        return stmt.executeQuery("SELECT " + column + " FROM mp3Lib WHERE " + conditions);
     }
 }
