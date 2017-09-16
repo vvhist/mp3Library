@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Vector;
+import java.util.concurrent.ExecutionException;
 
 public class SwingListeners {
 
@@ -31,7 +32,7 @@ public class SwingListeners {
                 if (!MusicData.getDatabaseLocation().exists()) {
                     enableView(false, "Creating a database in");
                     switchToWaitingMode(true);
-                    new Thread(databaseCreator).start();
+                    new DatabaseCreator().execute();
                 } else {
                     enableView(true, "Search in");
                 }
@@ -41,7 +42,7 @@ public class SwingListeners {
         view.getUpdateButton().addActionListener(e -> {
             enableView(false, "Updating the database in");
             switchToWaitingMode(true);
-            new Thread(databaseUpdater).start();
+            new DatabaseUpdater().execute();
         });
 
         view.getSearchButton().addActionListener(e -> {
@@ -100,35 +101,57 @@ public class SwingListeners {
         view.getTitleTextField().addKeyListener(searchOnEnter);
     }
 
-    private Runnable databaseCreator = () -> {
-        try {
+    private class DatabaseCreator extends SwingWorker {
+        @Override
+        protected Object doInBackground() throws Exception {
             Application.setConnection();
             MusicData.create();
-            if (!MusicData.hasMp3Files()) {
-                MusicData.delete();
-                view.getSelectButton().setEnabled(true);
-                view.getMsgLabel().setText("No MP3 files were found in");
-            } else {
-                enableView(true, "A new database was created in");
-            }
-        } catch (SQLException ex) {
-            view.getPathLabel().setVisible(false);
-            view.getMsgLabel().setText("SQL error");
+            return null;
         }
-        switchToWaitingMode(false);
-    };
 
-    private Runnable databaseUpdater = () -> {
-        try {
+        @Override
+        protected void done() {
+            try {
+                if (!MusicData.hasMp3Files()) {
+                    MusicData.delete();
+                    view.getSelectButton().setEnabled(true);
+                    view.getMsgLabel().setText("No MP3 files were found in");
+                } else {
+                    enableView(true, "A new database was created in");
+                }
+                get();
+            } catch (SQLException | ExecutionException | InterruptedException e) {
+                if (e.getCause() instanceof SQLException) {
+                    view.getPathLabel().setVisible(false);
+                    view.getMsgLabel().setText("SQL error");
+                }
+            }
+            switchToWaitingMode(false);
+        }
+    }
+
+    private class DatabaseUpdater extends SwingWorker {
+        @Override
+        protected Object doInBackground() throws Exception {
             Application.setConnection();
             MusicData.rebuild();
-            enableView(true, "The database was updated in");
-        } catch (SQLException ex) {
-            view.getPathLabel().setVisible(false);
-            view.getMsgLabel().setText("SQL error");
+            return null;
         }
-        switchToWaitingMode(false);
-    };
+
+        @Override
+        protected void done() {
+            try {
+                enableView(true, "The database was updated in");
+                get();
+            } catch (ExecutionException | InterruptedException e) {
+                if (e.getCause() instanceof SQLException) {
+                    view.getPathLabel().setVisible(false);
+                    view.getMsgLabel().setText("SQL error");
+                }
+            }
+            switchToWaitingMode(false);
+        }
+    }
 
     private void enableView(boolean isEnabled, String message) {
         enableComponents(view.$$$getRootComponent$$$(), isEnabled);
