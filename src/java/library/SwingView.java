@@ -24,11 +24,9 @@ public class SwingView {
     private JRadioButton titlesRadioButton;
     private JRadioButton fileNamesRadioButton;
     private JRadioButton displayAllRadioButton;
-    private JTextArea outputTextArea;
-    private JScrollPane scrollPane;
     private JTable table;
 
-    SwingView() {
+    public SwingView() {
         JFrame frame = new JFrame("MP3 search");
         frame.setContentPane(mainPanel);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -97,20 +95,8 @@ public class SwingView {
         return displayAllRadioButton;
     }
 
-    public JTextArea getOutputTextArea() {
-        return outputTextArea;
-    }
-
-    public JScrollPane getScrollPane() {
-        return scrollPane;
-    }
-
     public JTable getTable() {
         return table;
-    }
-
-    public void setTable(JTable table) {
-        this.table = table;
     }
 
     /**
@@ -204,7 +190,7 @@ public class SwingView {
         fileNamesRadioButton.setText("Display file names");
         panel1.add(fileNamesRadioButton, new GridConstraints(6, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         displayAllRadioButton = new JRadioButton();
-        displayAllRadioButton.setText("Display all tags as a table");
+        displayAllRadioButton.setText("Display all tags");
         panel1.add(displayAllRadioButton, new GridConstraints(7, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         msgLabel = new JLabel();
         msgLabel.setText("Select your music folder");
@@ -214,12 +200,13 @@ public class SwingView {
         if (pathLabelFont != null) pathLabel.setFont(pathLabelFont);
         pathLabel.setVisible(false);
         mainPanel.add(pathLabel, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        scrollPane = new JScrollPane();
-        mainPanel.add(scrollPane, new GridConstraints(1, 2, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, new Dimension(300, -1), null, null, 0, false));
-        outputTextArea = new JTextArea();
-        Font outputTextAreaFont = this.$$$getFont$$$("Segoe UI", -1, 12, outputTextArea.getFont());
-        if (outputTextAreaFont != null) outputTextArea.setFont(outputTextAreaFont);
-        scrollPane.setViewportView(outputTextArea);
+        final JScrollPane scrollPane1 = new JScrollPane();
+        mainPanel.add(scrollPane1, new GridConstraints(1, 2, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(300, 50), null, 0, false));
+        table = new JTable();
+        table.setAutoCreateRowSorter(true);
+        table.setColumnSelectionAllowed(true);
+        table.setFillsViewportHeight(true);
+        scrollPane1.setViewportView(table);
         progressBar = new JProgressBar();
         progressBar.setIndeterminate(true);
         progressBar.setPreferredSize(new Dimension(102, 12));

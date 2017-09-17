@@ -1,20 +1,19 @@
 package library;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 
 public class SwingListeners {
 
     private SwingView view;
-    private String column = "title";
+    private String column = "Title";
 
     public SwingListeners(SwingView swingView) {
         this.view = swingView;
@@ -46,39 +45,28 @@ public class SwingListeners {
         });
 
         view.getSearchButton().addActionListener(e -> {
-            if (!Objects.equals(view.getOutputTextArea().getText(), "")) {
-                view.getOutputTextArea().setText("");
-            }
             try {
                 Application.setConnection();
                 ArrayList<String> searchPairs = getSearchPairs();
                 if (searchPairs.size() >= 2) {
                     DataSearch.setQuery(searchPairs);
-                    ResultSet results = DataSearch.getResults(column);
-                    if (Objects.equals(column, "all")) {
-                        view.setTable(createTable(results));
-                        view.getScrollPane().setViewportView(view.getTable());
-                    } else {
-                        while (results.next()) {
-                            view.getOutputTextArea().append(results.getString(1) + "\n");
-                        }
-                        view.getScrollPane().setViewportView(view.getOutputTextArea());
-                    }
+                    view.getTable().setModel(createTableModel());
                 }
             } catch (SQLException ex) {
                 view.getPathLabel().setVisible(false);
                 view.getMsgLabel().setText("SQL error");
+                ex.printStackTrace();
             }
         });
 
         view.getTitlesRadioButton().addActionListener(e -> {
             view.getTitleTextField().setEnabled(false);
-            column = "title";
+            column = "Title";
         });
 
         view.getFileNamesRadioButton().addActionListener(e -> {
             view.getTitleTextField().setEnabled(true);
-            column = "fileName";
+            column = "Filename";
         });
 
         view.getDisplayAllRadioButton().addActionListener(e -> {
@@ -101,38 +89,44 @@ public class SwingListeners {
         view.getTitleTextField().addKeyListener(searchOnEnter);
     }
 
-    private class DatabaseCreator extends SwingWorker {
+    private class DatabaseCreator extends SwingWorker<Boolean, Void> {
         @Override
-        protected Object doInBackground() throws Exception {
+        protected Boolean doInBackground() throws Exception {
             Application.setConnection();
             MusicData.create();
-            return null;
+            if (MusicData.hasMp3Files()) {
+                return true;
+            } else {
+                MusicData.delete();
+                return false;
+            }
         }
 
         @Override
         protected void done() {
             try {
-                if (!MusicData.hasMp3Files()) {
-                    MusicData.delete();
+                Boolean hasMp3Files = get();
+                if (hasMp3Files) {
                     view.getSelectButton().setEnabled(true);
                     view.getMsgLabel().setText("No MP3 files were found in");
                 } else {
                     enableView(true, "A new database was created in");
                 }
                 get();
-            } catch (SQLException | ExecutionException | InterruptedException e) {
+            } catch (ExecutionException | InterruptedException e) {
                 if (e.getCause() instanceof SQLException) {
                     view.getPathLabel().setVisible(false);
                     view.getMsgLabel().setText("SQL error");
+                    e.printStackTrace();
                 }
             }
             switchToWaitingMode(false);
         }
     }
 
-    private class DatabaseUpdater extends SwingWorker {
+    private class DatabaseUpdater extends SwingWorker<Void, Void> {
         @Override
-        protected Object doInBackground() throws Exception {
+        protected Void doInBackground() throws Exception {
             Application.setConnection();
             MusicData.rebuild();
             return null;
@@ -147,6 +141,7 @@ public class SwingListeners {
                 if (e.getCause() instanceof SQLException) {
                     view.getPathLabel().setVisible(false);
                     view.getMsgLabel().setText("SQL error");
+                    e.printStackTrace();
                 }
             }
             switchToWaitingMode(false);
@@ -208,23 +203,14 @@ public class SwingListeners {
         return searchValues;
     }
 
-    private JTable createTable(ResultSet results) throws SQLException {
-        int numberOfColumns = results.getMetaData().getColumnCount();
-        Vector<Vector<String>> rowData = new Vector<>();
-        while (results.next()) {
-            Vector<String> row = new Vector<>(numberOfColumns);
-            for (int i = 1; i <= numberOfColumns; i++) {
-                row.add(results.getString(i));
-            }
-            rowData.add(row);
+    private DefaultTableModel createTableModel() throws SQLException {
+        Object[][] data = DataSearch.getResults(column);
+        Object[] columnNames;
+        if (Objects.equals(column, "all")) {
+            columnNames = new String[] {"Filename", "Artist", "Title", "Album", "Genre", "Year"};
+        } else {
+            columnNames = new String[] {column};
         }
-        Vector<String> columnNames = new Vector<>(numberOfColumns);
-        for (int i = 1; i <= numberOfColumns; i++) {
-            columnNames.add(results.getMetaData().getColumnName(i));
-        }
-        JTable table = new JTable(rowData, columnNames);
-        table.setColumnSelectionAllowed(true);
-        table.setAutoCreateRowSorter(true);
-        return table;
+        return new DefaultTableModel(data, columnNames);
     }
 }

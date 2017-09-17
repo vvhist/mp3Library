@@ -1,5 +1,6 @@
 package library;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -23,17 +24,36 @@ public class DataSearch {
         return String.join("", query);
     }
 
-    public static ResultSet getResults(String column) throws SQLException {
+    private static String[][] convertToArray(ResultSet rs) throws SQLException {
+        rs.last();
+        int numberOfRows = rs.getRow();
+        rs.beforeFirst();
+        int numberOfColumns = rs.getMetaData().getColumnCount();
+        String[][] data = new String[numberOfRows][numberOfColumns];
+        int i = 0;
+        while (rs.next() && i < numberOfRows) {
+            for (int j = 0; j < numberOfColumns; j++) {
+                data[i][j] = rs.getString(j + 1);
+            }
+            i++;
+        }
+        return data;
+    }
+
+    public static String[][] getResults(String column) throws SQLException {
         switch (column) {
-            case "title":
+            case "Title":
                 column = "COALESCE (NULLIF (title, ''), fileName)";
                 break;
             case "all":
                 column = "*";
                 break;
         }
-        Statement stmt = Application.getConnection().createStatement();
+        Connection con = Application.getConnection();
+        Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                             ResultSet.CONCUR_READ_ONLY);
         String conditions = convertQueryToSQL();
-        return stmt.executeQuery("SELECT " + column + " FROM mp3Lib WHERE " + conditions);
+        ResultSet rs = stmt.executeQuery("SELECT " + column + " FROM mp3Lib WHERE " + conditions);
+        return convertToArray(rs);
     }
 }
