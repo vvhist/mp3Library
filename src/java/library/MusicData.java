@@ -12,8 +12,8 @@ public class MusicData {
 
     private static File musicFolder;
 
-    public static void setMusicFolder(File musicFolder) {
-        MusicData.musicFolder = musicFolder;
+    public static void setMusicFolder(File folder) {
+        musicFolder = folder;
     }
 
     public static File getMusicFolder() {

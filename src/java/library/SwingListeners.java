@@ -49,8 +49,7 @@ public class SwingListeners {
                 Application.setConnection();
                 ArrayList<String> searchPairs = getSearchPairs();
                 if (searchPairs.size() >= 2) {
-                    DataSearch.setQuery(searchPairs);
-                    view.getTable().setModel(createTableModel());
+                    view.getTable().setModel(createTableModel(searchPairs));
                 }
             } catch (SQLException ex) {
                 view.getPathLabel().setVisible(false);
@@ -117,8 +116,8 @@ public class SwingListeners {
                 if (e.getCause() instanceof SQLException) {
                     view.getPathLabel().setVisible(false);
                     view.getMsgLabel().setText("SQL error");
-                    e.printStackTrace();
                 }
+                e.printStackTrace();
             }
             switchToWaitingMode(false);
         }
@@ -141,8 +140,8 @@ public class SwingListeners {
                 if (e.getCause() instanceof SQLException) {
                     view.getPathLabel().setVisible(false);
                     view.getMsgLabel().setText("SQL error");
-                    e.printStackTrace();
                 }
+                e.printStackTrace();
             }
             switchToWaitingMode(false);
         }
@@ -203,8 +202,8 @@ public class SwingListeners {
         return searchValues;
     }
 
-    private DefaultTableModel createTableModel() throws SQLException {
-        Object[][] data = DataSearch.getResults(column);
+    private DefaultTableModel createTableModel(ArrayList<String> searchPairs) throws SQLException {
+        Object[][] data = DataSearch.getResults(column, searchPairs);
         Object[] columnNames;
         if (Objects.equals(column, "all")) {
             columnNames = new String[] {"Filename", "Artist", "Title", "Album", "Genre", "Year"};

@@ -206,6 +206,7 @@ public class SwingView {
         table.setAutoCreateRowSorter(true);
         table.setColumnSelectionAllowed(true);
         table.setFillsViewportHeight(true);
+        table.setGridColor(new Color(-1118482));
         scrollPane1.setViewportView(table);
         progressBar = new JProgressBar();
         progressBar.setIndeterminate(true);

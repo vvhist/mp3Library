@@ -198,6 +198,7 @@
               <autoCreateRowSorter value="true"/>
               <columnSelectionAllowed value="true"/>
               <fillsViewportHeight value="true"/>
+              <gridColor color="-1118482"/>
             </properties>
           </component>
         </children>

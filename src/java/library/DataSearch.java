@@ -8,13 +8,7 @@ import java.util.ArrayList;
 
 public class DataSearch {
 
-    private static ArrayList<String> query;
-
-    public static void setQuery(ArrayList<String> query) {
-        DataSearch.query = query;
-    }
-
-    private static String convertQueryToSQL() {
+    private static String convertToSQL(ArrayList<String> query) {
         for (int i = 1; i < query.size(); i += 2) {
             query.add(i, "='");
             i += 2;
@@ -30,17 +24,15 @@ public class DataSearch {
         rs.beforeFirst();
         int numberOfColumns = rs.getMetaData().getColumnCount();
         String[][] data = new String[numberOfRows][numberOfColumns];
-        int i = 0;
-        while (rs.next() && i < numberOfRows) {
+        for (int i = 0; rs.next() && i < numberOfRows; i++) {
             for (int j = 0; j < numberOfColumns; j++) {
                 data[i][j] = rs.getString(j + 1);
             }
-            i++;
         }
         return data;
     }
 
-    public static String[][] getResults(String column) throws SQLException {
+    public static String[][] getResults(String column, ArrayList<String> query) throws SQLException {
         switch (column) {
             case "Title":
                 column = "COALESCE (NULLIF (title, ''), fileName)";
@@ -52,7 +44,7 @@ public class DataSearch {
         Connection con = Application.getConnection();
         Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                                              ResultSet.CONCUR_READ_ONLY);
-        String conditions = convertQueryToSQL();
+        String conditions = convertToSQL(query);
         ResultSet rs = stmt.executeQuery("SELECT " + column + " FROM mp3Lib WHERE " + conditions);
         return convertToArray(rs);
     }

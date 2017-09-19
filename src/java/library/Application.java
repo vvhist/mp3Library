@@ -25,8 +25,7 @@ public class Application {
                     | UnsupportedLookAndFeelException e) {
                 e.printStackTrace();
             }
-            SwingView view = new SwingView();
-            new SwingListeners(view);
+            new SwingListeners(new SwingView());
         });
     }
 }
