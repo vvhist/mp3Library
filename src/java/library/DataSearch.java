@@ -37,12 +37,11 @@ public class DataSearch {
                     entry.setFileName(rs.getString("fileName"));
                     break;
                 case "all":
-                    entry.setFileName(rs.getString("fileName"));
-                    entry.setArtist(rs.getString("artist"));
-                    entry.setTitle(rs.getString("title"));
-                    entry.setAlbum(rs.getString("album"));
-                    entry.setGenre(rs.getString("genre"));
-                    entry.setYear(rs.getString("year"));
+                    String[] tags = new String[entry.getSize()];
+                    for (int i = 0; i < entry.getSize(); i++) {
+                        tags[i] = rs.getString(i + 1);
+                    }
+                    entry.setTags(tags);
                     break;
             }
             results.add(entry);
@@ -69,12 +68,9 @@ public class DataSearch {
             case "all":
                 data = new String[numberOfRows][6];
                 for (int i = 0; i < numberOfRows; i++) {
-                    data[i][0] = results.get(i).getFileName();
-                    data[i][1] = results.get(i).getArtist();
-                    data[i][2] = results.get(i).getTitle();
-                    data[i][3] = results.get(i).getAlbum();
-                    data[i][4] = results.get(i).getGenre();
-                    data[i][5] = results.get(i).getYear();
+                    for (int j = 0; j < results.get(i).getSize(); j++) {
+                        data[i][j] = results.get(i).getTags()[j];
+                    }
                 }
         }
         return data;

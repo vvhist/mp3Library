@@ -38,14 +38,6 @@ public class DataEntry {
         this.fileName = fileName;
     }
 
-    public String getArtist() {
-        return artist;
-    }
-
-    public void setArtist(String artist) {
-        this.artist = artist;
-    }
-
     public String getTitle() {
         return title;
     }
@@ -54,28 +46,21 @@ public class DataEntry {
         this.title = title;
     }
 
-    public String getAlbum() {
-        return album;
+    public String[] getTags() {
+        return new String[] {fileName, artist, title, album, genre, year};
     }
 
-    public void setAlbum(String album) {
-        this.album = album;
+    public void setTags(String[] tags) {
+        fileName = tags[0];
+        artist   = tags[1];
+        title    = tags[2];
+        album    = tags[3];
+        genre    = tags[4];
+        year     = tags[5];
     }
 
-    public String getGenre() {
-        return genre;
-    }
-
-    public void setGenre(String genre) {
-        this.genre = genre;
-    }
-
-    public String getYear() {
-        return year;
-    }
-
-    public void setYear(String year) {
-        this.year = year;
+    public int getSize() {
+        return getTags().length;
     }
 
     /**

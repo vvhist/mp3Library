@@ -46,12 +46,9 @@ public class LibraryData {
     }
 
     private static void addToDatabase(PreparedStatement pstmt, DataEntry entry) throws SQLException {
-        pstmt.setString(1, entry.getFileName());
-        pstmt.setString(2, entry.getArtist());
-        pstmt.setString(3, entry.getTitle());
-        pstmt.setString(4, entry.getAlbum());
-        pstmt.setString(5, entry.getGenre());
-        pstmt.setString(6, entry.getYear());
+        for (int i = 0; i < entry.getSize(); i++) {
+            pstmt.setString(i + 1, entry.getTags()[i]);
+        }
         pstmt.executeUpdate();
     }
 
