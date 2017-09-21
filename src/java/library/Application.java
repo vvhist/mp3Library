@@ -10,7 +10,7 @@ public class Application {
     private static Connection con;
 
     public static void setConnection() throws SQLException {
-        con = DriverManager.getConnection("jdbc:hsqldb:file:" + MusicData.getDatabase(), "user", "");
+        con = DriverManager.getConnection("jdbc:hsqldb:file:" + LibraryData.getData(), "user", "");
     }
 
     public static Connection getConnection() {

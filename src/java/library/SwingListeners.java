@@ -25,10 +25,10 @@ public class SwingListeners {
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             int returnValue = chooser.showDialog(null, "Select");
             if (returnValue == JFileChooser.APPROVE_OPTION) {
-                MusicData.setMusicFolder(chooser.getSelectedFile());
+                LibraryData.setMusicFolder(chooser.getSelectedFile());
                 view.getPathLabel().setVisible(true);
-                view.getPathLabel().setText(MusicData.getMusicFolder().getPath());
-                if (!MusicData.getDatabaseLocation().exists()) {
+                view.getPathLabel().setText(LibraryData.getMusicFolder().getPath());
+                if (!LibraryData.getDataLocation().exists()) {
                     enableView(false, "Creating a database in");
                     switchToWaitingMode(true);
                     new DatabaseCreator().execute();
@@ -92,11 +92,11 @@ public class SwingListeners {
         @Override
         protected Boolean doInBackground() throws Exception {
             Application.setConnection();
-            MusicData.create();
-            if (MusicData.hasMp3Files()) {
+            LibraryData.create();
+            if (LibraryData.hasMp3Files()) {
                 return true;
             } else {
-                MusicData.delete();
+                LibraryData.delete();
                 return false;
             }
         }
@@ -105,7 +105,7 @@ public class SwingListeners {
         protected void done() {
             try {
                 Boolean hasMp3Files = get();
-                if (hasMp3Files) {
+                if (!hasMp3Files) {
                     view.getSelectButton().setEnabled(true);
                     view.getMsgLabel().setText("No MP3 files were found in");
                 } else {
@@ -127,7 +127,7 @@ public class SwingListeners {
         @Override
         protected Void doInBackground() throws Exception {
             Application.setConnection();
-            MusicData.rebuild();
+            LibraryData.rebuild();
             return null;
         }
 
@@ -203,7 +203,8 @@ public class SwingListeners {
     }
 
     private DefaultTableModel createTableModel(ArrayList<String> searchPairs) throws SQLException {
-        Object[][] data = DataSearch.getResults(column, searchPairs);
+        DataSearch.setColumn(column);
+        Object[][] data = DataSearch.getResults(searchPairs);
         Object[] columnNames;
         if (Objects.equals(column, "all")) {
             columnNames = new String[] {"Filename", "Artist", "Title", "Album", "Genre", "Year"};

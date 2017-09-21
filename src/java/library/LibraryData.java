@@ -8,7 +8,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.sql.*;
 
-public class MusicData {
+public class LibraryData {
 
     private static File musicFolder;
 
@@ -20,12 +20,12 @@ public class MusicData {
         return musicFolder;
     }
 
-    public static File getDatabase() {
+    public static File getData() {
         return new File(musicFolder, "libraryData/Data");
     }
 
-    public static File getDatabaseLocation() {
-        return getDatabase().getParentFile();
+    public static File getDataLocation() {
+        return getData().getParentFile();
     }
 
     private static void addMp3FromFolder(PreparedStatement pstmt, File folder) throws SQLException {
@@ -37,7 +37,7 @@ public class MusicData {
                 addMp3FromFolder(pstmt, file);
             } else {
                 try {
-                    addToDatabase(pstmt, file);
+                    addToDatabase(pstmt, new DataEntry(file));
                 } catch (IOException | UnsupportedTagException | InvalidDataException e) {
                     System.err.println("Error: the program failed to process " + file.getPath());
                 }
@@ -45,10 +45,8 @@ public class MusicData {
         }
     }
 
-    private static void addToDatabase(PreparedStatement pstmt, File file)
-            throws SQLException, IOException, UnsupportedTagException, InvalidDataException {
-        TagEntry entry = new TagEntry(file);
-        pstmt.setString(1, file.getName());
+    private static void addToDatabase(PreparedStatement pstmt, DataEntry entry) throws SQLException {
+        pstmt.setString(1, entry.getFileName());
         pstmt.setString(2, entry.getArtist());
         pstmt.setString(3, entry.getTitle());
         pstmt.setString(4, entry.getAlbum());
@@ -78,7 +76,7 @@ public class MusicData {
     public static void delete() throws SQLException {
         Statement stmt = Application.getConnection().createStatement();
         stmt.execute("SHUTDOWN");
-        deleteFolder(getDatabaseLocation());
+        deleteFolder(getDataLocation());
     }
 
     public static void rebuild() throws SQLException {

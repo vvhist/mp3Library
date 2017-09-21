@@ -8,17 +8,21 @@ import com.mpatric.mp3agic.UnsupportedTagException;
 import java.io.File;
 import java.io.IOException;
 
-public class TagEntry {
+public class DataEntry {
 
+    private String fileName;
     private String artist;
     private String title;
     private String album;
     private String genre;
     private String year;
 
-    public TagEntry(File file) throws IOException, UnsupportedTagException, InvalidDataException {
+    public DataEntry() {}
+
+    public DataEntry(File file) throws IOException, UnsupportedTagException, InvalidDataException {
         Mp3File mp3 = new Mp3File(file);
         ID3Wrapper tag = new ID3Wrapper(mp3.getId3v1Tag(), mp3.getId3v2Tag());
+        fileName = file.getName();
         artist = tag.getArtist();
         title  = tag.getTitle();
         album  = tag.getAlbum();
@@ -26,24 +30,52 @@ public class TagEntry {
         year   = tag.getYear();
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
     public String getArtist() {
         return artist;
+    }
+
+    public void setArtist(String artist) {
+        this.artist = artist;
     }
 
     public String getTitle() {
         return title;
     }
 
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public String getAlbum() {
         return album;
+    }
+
+    public void setAlbum(String album) {
+        this.album = album;
     }
 
     public String getGenre() {
         return genre;
     }
 
+    public void setGenre(String genre) {
+        this.genre = genre;
+    }
+
     public String getYear() {
         return year;
+    }
+
+    public void setYear(String year) {
+        this.year = year;
     }
 
     /**
