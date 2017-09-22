@@ -207,7 +207,7 @@ public class SwingListeners {
         Object[][] data = DataSearch.getResults(searchPairs);
         Object[] columnNames;
         if (Objects.equals(column, "all")) {
-            columnNames = new String[] {"Filename", "Artist", "Title", "Album", "Genre", "Year"};
+            columnNames = DataEntry.getTagNames();
         } else {
             columnNames = new String[] {column};
         }

@@ -63,6 +63,10 @@ public class DataEntry {
         return getTags().length;
     }
 
+    public static String[] getTagNames() {
+        return new String[] {"Filename", "Artist", "Title", "Album", "Genre", "Year"};
+    }
+
     /**
      * This method does exactly the same thing as getAlbum() or getTitle() methods of
      * com.mpatric.mp3agic.ID3Wrapper class.

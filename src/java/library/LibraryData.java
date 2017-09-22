@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.sql.*;
+import java.util.Arrays;
 
 public class LibraryData {
 
@@ -26,6 +27,13 @@ public class LibraryData {
 
     public static File getDataLocation() {
         return getData().getParentFile();
+    }
+
+    private static String getTags() {
+        String[] tags = DataEntry.getTagNames();
+        Arrays.setAll(tags, i -> tags[i] + " VARCHAR(10000)");
+        tags[0] = tags[0] + " NOT NULL";
+        return String.join(", ", tags);
     }
 
     private static void addMp3FromFolder(PreparedStatement pstmt, File folder) throws SQLException {
@@ -86,17 +94,9 @@ public class LibraryData {
         Connection con = Application.getConnection();
         Statement stmt = con.createStatement();
         stmt.execute("SET IGNORECASE TRUE");
-        stmt.executeUpdate("CREATE TABLE mp3Lib (" +
-                "fileName VARCHAR(10000) NOT NULL," +
-                "artist VARCHAR(10000)," +
-                "title VARCHAR(10000)," +
-                "album VARCHAR(10000)," +
-                "genre VARCHAR(10000)," +
-                "year VARCHAR(10000)," +
-                "PRIMARY KEY (fileName))");
-        PreparedStatement pstmt = con.prepareStatement("INSERT INTO mp3Lib" +
-                "(fileName, artist, title, album, genre, year)" +
-                "VALUES (?, ?, ?, ?, ?, ?)");
+        stmt.executeUpdate("CREATE TABLE mp3Lib (" + getTags() + ", PRIMARY KEY (fileName))");
+        PreparedStatement pstmt = con.prepareStatement(
+                "INSERT INTO mp3Lib VALUES (?, ?, ?, ?, ?, ?)");
         addMp3FromFolder(pstmt, musicFolder);
     }
 }
