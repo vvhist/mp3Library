@@ -7,6 +7,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
@@ -47,7 +48,7 @@ public class SwingListeners {
         view.getSearchButton().addActionListener(e -> {
             try {
                 Application.setConnection();
-                ArrayList<String> searchPairs = getSearchPairs();
+                List<String> searchPairs = getSearchPairs();
                 if (searchPairs.size() >= 2) {
                     view.getTable().setModel(createTableModel(searchPairs));
                 }
@@ -89,6 +90,7 @@ public class SwingListeners {
     }
 
     private class DatabaseCreator extends SwingWorker<Boolean, Void> {
+
         @Override
         protected Boolean doInBackground() throws Exception {
             Application.setConnection();
@@ -124,6 +126,7 @@ public class SwingListeners {
     }
 
     private class DatabaseUpdater extends SwingWorker<Void, Void> {
+
         @Override
         protected Void doInBackground() throws Exception {
             Application.setConnection();
@@ -177,8 +180,8 @@ public class SwingListeners {
         }
     }
 
-    private ArrayList<String> getSearchPairs() {
-        ArrayList<String> searchValues = new ArrayList<>();
+    private List<String> getSearchPairs() {
+        List<String> searchValues = new ArrayList<>();
         if (!view.getArtistTextField().getText().isEmpty()) {
             searchValues.add("Artist");
             searchValues.add(view.getArtistTextField().getText());
@@ -202,9 +205,8 @@ public class SwingListeners {
         return searchValues;
     }
 
-    private DefaultTableModel createTableModel(ArrayList<String> searchPairs) throws SQLException {
-        DataSearch.setColumn(column);
-        Object[][] data = DataSearch.getResults(searchPairs);
+    private DefaultTableModel createTableModel(List<String> searchPairs) throws SQLException {
+        Object[][] data = new DataSearch(column).getResults(searchPairs);
         Object[] columnNames;
         if (Objects.equals(column, "all")) {
             columnNames = DataEntry.getTagNames();

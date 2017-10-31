@@ -11,6 +11,8 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class TestMp3Library {
 
@@ -18,34 +20,24 @@ public class TestMp3Library {
             throws SQLException, IOException, UnsupportedTagException, InvalidDataException {
         LibraryData.setMusicFolder(new File("test/resources"));
         Application.setConnection();
-        LibraryData.create();
+        LibraryData.rebuild();
 
-        ArrayList<String> searchValues = new ArrayList<>();
-        searchValues.add("Year");
-        searchValues.add("2000");
-        searchValues.add("Genre");
-        searchValues.add("Classic Rock");
-        DataSearch.setColumn("Title");
-        String[][] trialData = DataSearch.getResults(searchValues);
-        ArrayList<String> trialResults = new ArrayList<>();
+        List<String> searchValues = new ArrayList<>();
+        searchValues.addAll(Arrays.asList("Year", "2000", "Genre", "Classic Rock"));
+        String[][] trialData = new DataSearch("Title").getResults(searchValues);
+        List<String> trialResults = new ArrayList<>();
         for (String[] result : trialData) {
             trialResults.add(result[0]);
         }
-        ArrayList<String> expectedResults = new ArrayList<>();
-        expectedResults.add("One");
-        expectedResults.add("Two");
-        expectedResults.add("ID3v23tagsWithoutTitle.mp3");
-        expectedResults.add("Five");
-        expectedResults.add("Four");
-        expectedResults.add("Six");
+        List<String> expectedResults = new ArrayList<>();
+        expectedResults.addAll(Arrays.asList(
+                "One", "Two", "ID3v23tagsWithoutTitle.mp3", "Five", "Four", "Six"));
 
         Assert.assertEquals(trialResults, expectedResults);
 
         searchValues = new ArrayList<>();
-        searchValues.add("Title");
-        searchValues.add("Five");
-        DataSearch.setColumn("Filename");
-        trialData = DataSearch.getResults(searchValues);
+        searchValues.addAll(Arrays.asList("Title", "Five"));
+        trialData = new DataSearch("Filename").getResults(searchValues);
         trialResults = new ArrayList<>();
         for (String[] result : trialData) {
             trialResults.add(result[0]);
@@ -56,12 +48,8 @@ public class TestMp3Library {
         Assert.assertEquals(trialResults, expectedResults);
 
         searchValues = new ArrayList<>();
-        searchValues.add("Artist");
-        searchValues.add("Artist 2");
-        searchValues.add("Album");
-        searchValues.add("Album 2");
-        DataSearch.setColumn("all");
-        trialData = DataSearch.getResults(searchValues);
+        searchValues.addAll(Arrays.asList("Artist", "Artist 2", "Album", "Album 2"));
+        trialData = new DataSearch("all").getResults(searchValues);
         String[][] expectedData = new String[][] {
          {"ID3v23withSuffixInUPPERCASE.MP3", "Artist 2", "Five", "Album 2", "Classic Rock", "2000"},
          {"ID3v24tags.mp3",                  "Artist 2", "Four", "Album 2", "Classic Rock", "2000"},

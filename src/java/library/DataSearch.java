@@ -4,16 +4,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 
 public class DataSearch {
 
-    private static String column;
+    private final String column;
 
-    public static void setColumn(String column) {
-        DataSearch.column = column;
+    public DataSearch(String column) {
+        this.column = column;
     }
 
-    private static String convertToSQL(ArrayList<String> query) {
+    private static String convertToSQL(List<String> query) {
         for (int i = 1; i < query.size(); i += 2) {
             query.add(i, "='");
             i += 2;
@@ -23,8 +24,8 @@ public class DataSearch {
         return String.join("", query);
     }
 
-    private static ArrayList<DataEntry> convertToList(ResultSet rs) throws SQLException {
-        ArrayList<DataEntry> results = new ArrayList<>();
+    private List<DataEntry> convertToList(ResultSet rs) throws SQLException {
+        List<DataEntry> results = new ArrayList<>();
         while (rs.next()) {
             DataEntry entry = new DataEntry();
             switch (column) {
@@ -49,7 +50,7 @@ public class DataSearch {
         return results;
     }
 
-    private static String[][] convertToArray(ArrayList<DataEntry> results) {
+    private String[][] convertToArray(List<DataEntry> results) {
         String[][] data = new String[][]{};
         int numberOfRows = results.size();
         switch (column) {
@@ -76,11 +77,11 @@ public class DataSearch {
         return data;
     }
 
-    public static String[][] getResults(ArrayList<String> query) throws SQLException {
+    public String[][] getResults(List<String> query) throws SQLException {
         Statement stmt = Application.getConnection().createStatement();
         String conditions = convertToSQL(query);
         ResultSet rs = stmt.executeQuery("SELECT * FROM mp3Lib WHERE " + conditions);
-        ArrayList<DataEntry> results = convertToList(rs);
+        List<DataEntry> results = convertToList(rs);
         return convertToArray(results);
     }
 }
