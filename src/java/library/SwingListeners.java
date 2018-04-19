@@ -15,6 +15,7 @@ public class SwingListeners {
 
     private SwingView view;
     private String column = "Title";
+    private LibraryData library;
 
     public SwingListeners(SwingView swingView) {
         this.view = swingView;
@@ -26,10 +27,10 @@ public class SwingListeners {
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             int returnValue = chooser.showDialog(null, "Select");
             if (returnValue == JFileChooser.APPROVE_OPTION) {
-                LibraryData.setMusicFolder(chooser.getSelectedFile());
+                library = new LibraryData(chooser.getSelectedFile());
                 view.getPathLabel().setVisible(true);
-                view.getPathLabel().setText(LibraryData.getMusicFolder().getPath());
-                if (!LibraryData.getDataLocation().exists()) {
+                view.getPathLabel().setText(library.getMusicFolder().getPath());
+                if (!library.getDataLocation().exists()) {
                     enableView(false, "Creating a database in");
                     switchToWaitingMode(true);
                     new DatabaseCreator().execute();
@@ -47,7 +48,6 @@ public class SwingListeners {
 
         view.getSearchButton().addActionListener(e -> {
             try {
-                Application.setConnection();
                 List<String> searchPairs = getSearchPairs();
                 if (searchPairs.size() >= 2) {
                     view.getTable().setModel(createTableModel(searchPairs));
@@ -93,12 +93,11 @@ public class SwingListeners {
 
         @Override
         protected Boolean doInBackground() throws Exception {
-            Application.setConnection();
-            LibraryData.create();
-            if (LibraryData.hasMp3Files()) {
+            library.create();
+            if (library.hasMp3Files()) {
                 return true;
             } else {
-                LibraryData.delete();
+                library.delete();
                 return false;
             }
         }
@@ -129,8 +128,7 @@ public class SwingListeners {
 
         @Override
         protected Void doInBackground() throws Exception {
-            Application.setConnection();
-            LibraryData.rebuild();
+            library.rebuild();
             return null;
         }
 

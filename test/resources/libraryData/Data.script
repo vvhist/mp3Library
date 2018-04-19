@@ -48,4 +48,6 @@ INSERT INTO MP3LIB VALUES('ID3v1tags.mp3','Artist 1','One','Album 1','Classic Ro
 INSERT INTO MP3LIB VALUES('ID3v22tags.mp3','Artist 1','Two','Album 1','Classic Rock','2000')
 INSERT INTO MP3LIB VALUES('ID3v23tagsWithoutTitle.mp3','Artist 1',NULL,'Album 1','Classic Rock','2000')
 INSERT INTO MP3LIB VALUES('ID3v23withSuffixInUPPERCASE.MP3','Artist 2','Five','Album 2','Classic Rock','2000')
+INSERT INTO MP3LIB VALUES('ID3v24tags.mp3','Artist 2','Four','Album 2','Classic Rock','2000')
+INSERT INTO MP3LIB VALUES('ID3v24tagsSub.mp3','Artist 2','Six','Album 2','Classic Rock','2000')
 INSERT INTO MP3LIB VALUES('noTags.mp3',NULL,NULL,NULL,NULL,NULL)

@@ -2,7 +2,6 @@ package library;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,9 +77,9 @@ public class DataSearch {
     }
 
     public String[][] getResults(List<String> query) throws SQLException {
-        Statement stmt = Application.getConnection().createStatement();
         String conditions = convertToSQL(query);
-        ResultSet rs = stmt.executeQuery("SELECT * FROM mp3Lib WHERE " + conditions);
+        ResultSet rs = LibraryData.getSQLStatement().executeQuery(
+                "SELECT * FROM mp3Lib WHERE " + conditions);
         List<DataEntry> results = convertToList(rs);
         return convertToArray(results);
     }

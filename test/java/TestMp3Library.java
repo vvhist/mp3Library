@@ -1,6 +1,3 @@
-import com.mpatric.mp3agic.InvalidDataException;
-import com.mpatric.mp3agic.UnsupportedTagException;
-import library.Application;
 import library.DataSearch;
 import library.LibraryData;
 import org.testng.Assert;
@@ -8,7 +5,6 @@ import org.testng.annotations.Test;
 import org.testng.internal.junit.ArrayAsserts;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,11 +12,9 @@ import java.util.List;
 
 public class TestMp3Library {
 
-    @Test public void testDataSearch()
-            throws SQLException, IOException, UnsupportedTagException, InvalidDataException {
-        LibraryData.setMusicFolder(new File("test/resources"));
-        Application.setConnection();
-        LibraryData.rebuild();
+    @Test public void testDataSearch() throws SQLException {
+        LibraryData library = new LibraryData(new File("test/resources"));
+        library.rebuild();
 
         List<String> searchValues = new ArrayList<>();
         searchValues.addAll(Arrays.asList("Year", "2000", "Genre", "Classic Rock"));
