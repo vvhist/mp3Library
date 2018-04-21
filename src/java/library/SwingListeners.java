@@ -33,17 +33,31 @@ public class SwingListeners {
                 if (!library.getDataLocation().exists()) {
                     enableView(false, "Creating a database in");
                     switchToWaitingMode(true);
-                    new DatabaseCreator().execute();
+                    new DatabaseCreator("A new database was created in").execute();
                 } else {
+                    try {
+                        library.establishConnection();
+                    } catch (SQLException e1) {
+                        view.getPathLabel().setVisible(false);
+                        view.getMsgLabel().setText("SQL error");
+                        e1.printStackTrace();
+                    }
                     enableView(true, "Search in");
                 }
             }
         });
 
         view.getUpdateButton().addActionListener(e -> {
+            try {
+                library.delete();
+            } catch (SQLException e1) {
+                view.getPathLabel().setVisible(false);
+                view.getMsgLabel().setText("SQL error");
+                e1.printStackTrace();
+            }
             enableView(false, "Updating the database in");
             switchToWaitingMode(true);
-            new DatabaseUpdater().execute();
+            new DatabaseCreator("The database was updated in").execute();
         });
 
         view.getSearchButton().addActionListener(e -> {
@@ -91,6 +105,12 @@ public class SwingListeners {
 
     private class DatabaseCreator extends SwingWorker<Boolean, Void> {
 
+        String message;
+
+        DatabaseCreator(String message) {
+            this.message = message;
+        }
+
         @Override
         protected Boolean doInBackground() throws Exception {
             library.create();
@@ -110,32 +130,8 @@ public class SwingListeners {
                     view.getSelectButton().setEnabled(true);
                     view.getMsgLabel().setText("No MP3 files were found in");
                 } else {
-                    enableView(true, "A new database was created in");
+                    enableView(true, message);
                 }
-                get();
-            } catch (ExecutionException | InterruptedException e) {
-                if (e.getCause() instanceof SQLException) {
-                    view.getPathLabel().setVisible(false);
-                    view.getMsgLabel().setText("SQL error");
-                }
-                e.printStackTrace();
-            }
-            switchToWaitingMode(false);
-        }
-    }
-
-    private class DatabaseUpdater extends SwingWorker<Void, Void> {
-
-        @Override
-        protected Void doInBackground() throws Exception {
-            library.rebuild();
-            return null;
-        }
-
-        @Override
-        protected void done() {
-            try {
-                enableView(true, "The database was updated in");
                 get();
             } catch (ExecutionException | InterruptedException e) {
                 if (e.getCause() instanceof SQLException) {

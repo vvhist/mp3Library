@@ -32,6 +32,12 @@ public class LibraryData {
         return new File(musicFolder, "libraryData");
     }
 
+    public void establishConnection() throws SQLException {
+        con = DriverManager.getConnection(
+                "jdbc:hsqldb:file:" + new File(getDataLocation(), "Data"), "user", "");
+        stmt = con.createStatement();
+    }
+
     public void create() throws SQLException {
         establishConnection();
         stmt.execute("SET IGNORECASE TRUE");
@@ -39,12 +45,6 @@ public class LibraryData {
                 "CREATE TABLE mp3Lib (" + getTagsWithSQLSyntax() + ", PRIMARY KEY (fileName))");
         pstmt = con.prepareStatement("INSERT INTO mp3Lib VALUES (?, ?, ?, ?, ?, ?)");
         addMp3FromFolder(musicFolder);
-    }
-
-    public void rebuild() throws SQLException {
-        establishConnection();
-        stmt.executeUpdate("DROP TABLE mp3Lib");
-        create();
     }
 
     public boolean hasMp3Files() throws SQLException {
@@ -55,12 +55,6 @@ public class LibraryData {
     public void delete() throws SQLException {
         stmt.execute("SHUTDOWN");
         deleteFolder(getDataLocation());
-    }
-
-    private void establishConnection() throws SQLException {
-        con = DriverManager.getConnection(
-                "jdbc:hsqldb:file:" + new File(getDataLocation(), "Data"), "user", "");
-        stmt = con.createStatement();
     }
 
     private static String getTagsWithSQLSyntax() {

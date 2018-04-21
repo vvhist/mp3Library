@@ -14,7 +14,7 @@ public class TestMp3Library {
 
     @Test public void testDataSearch() throws SQLException {
         LibraryData library = new LibraryData(new File("test/resources"));
-        library.rebuild();
+        library.create();
 
         List<String> searchValues = new ArrayList<>();
         searchValues.addAll(Arrays.asList("Year", "2000", "Genre", "Classic Rock"));
@@ -50,5 +50,6 @@ public class TestMp3Library {
          {"ID3v24tagsSub.mp3",               "Artist 2", "Six",  "Album 2", "Classic Rock", "2000"}};
 
         ArrayAsserts.assertArrayEquals(trialData, expectedData);
+        library.delete();
     }
 }
