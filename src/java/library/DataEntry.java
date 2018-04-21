@@ -10,6 +10,7 @@ import java.io.IOException;
 
 public class DataEntry {
 
+    private static int id = 0;
     private String fileName;
     private String artist;
     private String title;
@@ -22,12 +23,17 @@ public class DataEntry {
     public DataEntry(File file) throws IOException, UnsupportedTagException, InvalidDataException {
         Mp3File mp3 = new Mp3File(file);
         ID3Wrapper tag = new ID3Wrapper(mp3.getId3v1Tag(), mp3.getId3v2Tag());
+        id++;
         fileName = file.getName();
         artist = tag.getArtist();
         title  = tag.getTitle();
         album  = tag.getAlbum();
         genre  = getGenre(mp3);
         year   = tag.getYear();
+    }
+
+    public static void setIDToZero() {
+        id = 0;
     }
 
     public String getFileName() {
@@ -47,7 +53,7 @@ public class DataEntry {
     }
 
     public String[] getTags() {
-        return new String[] {fileName, artist, title, album, genre, year};
+        return new String[] {Integer.toString(id), fileName, artist, title, album, genre, year};
     }
 
     public void setTags(String[] tags) {
@@ -64,7 +70,7 @@ public class DataEntry {
     }
 
     public static String[] getTagNames() {
-        return new String[] {"Filename", "Artist", "Title", "Album", "Genre", "Year"};
+        return new String[] {"Id", "Filename", "Artist", "Title", "Album", "Genre", "Year"};
     }
 
     /**

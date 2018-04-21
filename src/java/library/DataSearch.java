@@ -37,9 +37,9 @@ public class DataSearch {
                     entry.setFileName(rs.getString("fileName"));
                     break;
                 case "all":
-                    String[] tags = new String[entry.getSize()];
-                    for (int i = 0; i < entry.getSize(); i++) {
-                        tags[i] = rs.getString(i + 1);
+                    String[] tags = new String[entry.getSize() - 1];
+                    for (int i = 0; i < entry.getSize() - 1; i++) {
+                        tags[i] = rs.getString(i + 2);
                     }
                     entry.setTags(tags);
                     break;
@@ -68,8 +68,8 @@ public class DataSearch {
             case "all":
                 data = new String[numberOfRows][6];
                 for (int i = 0; i < numberOfRows; i++) {
-                    for (int j = 0; j < results.get(i).getSize(); j++) {
-                        data[i][j] = results.get(i).getTags()[j];
+                    for (int j = 0; j < results.get(i).getSize() - 1; j++) {
+                        data[i][j] = results.get(i).getTags()[j + 1];
                     }
                 }
         }

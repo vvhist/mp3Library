@@ -42,9 +42,10 @@ public class LibraryData {
         establishConnection();
         stmt.execute("SET IGNORECASE TRUE");
         stmt.executeUpdate(
-                "CREATE TABLE mp3Lib (" + getTagsWithSQLSyntax() + ", PRIMARY KEY (fileName))");
-        pstmt = con.prepareStatement("INSERT INTO mp3Lib VALUES (?, ?, ?, ?, ?, ?)");
+                "CREATE TABLE mp3Lib (" + getTagsWithSQLSyntax() + ", PRIMARY KEY (id))");
+        pstmt = con.prepareStatement("INSERT INTO mp3Lib VALUES (?, ?, ?, ?, ?, ?, ?)");
         addMp3FromFolder(musicFolder);
+        DataEntry.setIDToZero();
     }
 
     public boolean hasMp3Files() throws SQLException {
@@ -60,7 +61,6 @@ public class LibraryData {
     private static String getTagsWithSQLSyntax() {
         String[] tags = DataEntry.getTagNames();
         Arrays.setAll(tags, i -> tags[i] + " VARCHAR(10000)");
-        tags[0] = tags[0] + " NOT NULL";
         return String.join(", ", tags);
     }
 

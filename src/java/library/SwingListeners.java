@@ -7,6 +7,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -203,7 +204,8 @@ public class SwingListeners {
         Object[][] data = new DataSearch(column).getResults(searchPairs);
         Object[] columnNames;
         if (Objects.equals(column, "all")) {
-            columnNames = DataEntry.getTagNames();
+            String[] tagNames = DataEntry.getTagNames();
+            columnNames = Arrays.copyOfRange(tagNames, 1, tagNames.length);
         } else {
             columnNames = new String[] {column};
         }
