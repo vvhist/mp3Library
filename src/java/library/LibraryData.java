@@ -11,39 +11,26 @@ import java.util.Arrays;
 
 public class LibraryData {
 
-    private static Connection con;
-    private static Statement stmt;
-    private static PreparedStatement pstmt;
     private File musicFolder;
+    private Statement stmt;
+    private PreparedStatement pstmt;
 
-    public LibraryData(File folder) {
-        musicFolder = folder;
-    }
-
-    public static Statement getSQLStatement() {
-        return stmt;
-    }
-
-    public File getMusicFolder() {
-        return musicFolder;
+    public LibraryData(File musicFolder) {
+        this.musicFolder = musicFolder;
     }
 
     public File getDataLocation() {
         return new File(musicFolder, "libraryData");
     }
 
-    public void establishConnection() throws SQLException {
-        con = DriverManager.getConnection(
-                "jdbc:hsqldb:file:" + new File(getDataLocation(), "Data"), "user", "");
-        stmt = con.createStatement();
-    }
-
     public void create() throws SQLException {
-        establishConnection();
+        SQLConnection.establish(getDataLocation());
+        stmt = SQLConnection.get().createStatement();
         stmt.execute("SET IGNORECASE TRUE");
         stmt.executeUpdate(
                 "CREATE TABLE mp3Lib (" + getTagsWithSQLSyntax() + ", PRIMARY KEY (id))");
-        pstmt = con.prepareStatement("INSERT INTO mp3Lib VALUES (?, ?, ?, ?, ?, ?, ?)");
+        pstmt = SQLConnection.get().prepareStatement(
+                "INSERT INTO mp3Lib VALUES (?, ?, ?, ?, ?, ?, ?)");
         addMp3FromFolder(musicFolder);
         DataEntry.setIDToZero();
     }
@@ -64,7 +51,7 @@ public class LibraryData {
         return String.join(", ", tags);
     }
 
-    private static void addMp3FromFolder(File folder) throws SQLException {
+    private void addMp3FromFolder(File folder) throws SQLException {
         FileFilter mp3Files = pathname -> pathname.isDirectory()
                 || pathname.getName().toLowerCase().endsWith(".mp3");
         File[] folderContents = folder.listFiles(mp3Files);
@@ -81,7 +68,7 @@ public class LibraryData {
         }
     }
 
-    private static void addToDatabase(DataEntry entry) throws SQLException {
+    private void addToDatabase(DataEntry entry) throws SQLException {
         for (int i = 0; i < entry.getSize(); i++) {
             pstmt.setString(i + 1, entry.getTags()[i]);
         }

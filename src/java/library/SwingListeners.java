@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,16 +28,17 @@ public class SwingListeners {
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             int returnValue = chooser.showDialog(null, "Select");
             if (returnValue == JFileChooser.APPROVE_OPTION) {
-                library = new LibraryData(chooser.getSelectedFile());
+                File musicFolder = chooser.getSelectedFile();
+                library = new LibraryData(musicFolder);
                 view.getPathLabel().setVisible(true);
-                view.getPathLabel().setText(library.getMusicFolder().getPath());
+                view.getPathLabel().setText(musicFolder.getPath());
                 if (!library.getDataLocation().exists()) {
                     view.enable(false, "Creating a database in");
                     view.switchToWaitingMode(true);
                     new DatabaseCreator("A new database was created in").execute();
                 } else {
                     try {
-                        library.establishConnection();
+                        SQLConnection.establish(library.getDataLocation());
                     } catch (SQLException e1) {
                         view.getPathLabel().setVisible(false);
                         view.getMsgLabel().setText("SQL error");

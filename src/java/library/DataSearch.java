@@ -78,7 +78,7 @@ public class DataSearch {
 
     public String[][] getResults(List<String> query) throws SQLException {
         String conditions = convertToSQL(query);
-        ResultSet rs = LibraryData.getSQLStatement().executeQuery(
+        ResultSet rs = SQLConnection.get().createStatement().executeQuery(
                 "SELECT * FROM mp3Lib WHERE " + conditions);
         List<DataEntry> results = convertToList(rs);
         return convertToArray(results);
