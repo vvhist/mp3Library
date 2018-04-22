@@ -1,5 +1,6 @@
 import library.DataSearch;
 import library.LibraryData;
+import library.SQLConnection;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.testng.internal.junit.ArrayAsserts;
@@ -13,12 +14,13 @@ import java.util.List;
 public class TestMp3Library {
 
     @Test public void testDataSearch() throws SQLException {
-        LibraryData library = new LibraryData(new File("test/resources"));
+        SQLConnection con = new SQLConnection(new File("test/resources"));
+        LibraryData library = new LibraryData(con);
         library.create();
 
         List<String> searchValues = new ArrayList<>();
         searchValues.addAll(Arrays.asList("Year", "2000", "Genre", "Classic Rock"));
-        String[][] actualData = new DataSearch("Title").getResults(searchValues);
+        String[][] actualData = new DataSearch("Title").getResults(con, searchValues);
         List<String> actualResults = new ArrayList<>();
         for (String[] result : actualData) {
             actualResults.add(result[0]);
@@ -31,7 +33,7 @@ public class TestMp3Library {
 
         searchValues = new ArrayList<>();
         searchValues.addAll(Arrays.asList("Title", "Five"));
-        actualData = new DataSearch("Filename").getResults(searchValues);
+        actualData = new DataSearch("Filename").getResults(con, searchValues);
         actualResults = new ArrayList<>();
         for (String[] result : actualData) {
             actualResults.add(result[0]);
@@ -43,7 +45,7 @@ public class TestMp3Library {
 
         searchValues = new ArrayList<>();
         searchValues.addAll(Arrays.asList("Artist", "Artist 2", "Album", "Album 2"));
-        actualData = new DataSearch("all").getResults(searchValues);
+        actualData = new DataSearch("all").getResults(con, searchValues);
         String[][] expectedData = new String[][] {
          {"ID3v23withSuffixInUPPERCASE.MP3", "Artist 2", "Five", "Album 2", "Classic Rock", "2000"},
          {"ID3v24tags.mp3",                  "Artist 2", "Four", "Album 2", "Classic Rock", "2000"},

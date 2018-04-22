@@ -14,12 +14,12 @@ import java.util.concurrent.ExecutionException;
 
 public class SwingListeners {
 
-    private SwingView view;
-    private String column = "Title";
+    private SwingView view = new SwingView();
+    private SQLConnection con;
     private LibraryData library;
+    private DataSearch search = new DataSearch("Title");
 
-    public SwingListeners(SwingView swingView) {
-        this.view = swingView;
+    public SwingListeners() {
         view.enable(false, "Select your music folder");
         view.getSelectButton().setEnabled(true);
 
@@ -29,33 +29,34 @@ public class SwingListeners {
             int returnValue = chooser.showDialog(null, "Select");
             if (returnValue == JFileChooser.APPROVE_OPTION) {
                 File musicFolder = chooser.getSelectedFile();
-                library = new LibraryData(musicFolder);
+                con = new SQLConnection(musicFolder);
                 view.getPathLabel().setVisible(true);
                 view.getPathLabel().setText(musicFolder.getPath());
-                if (!library.getDataLocation().exists()) {
-                    view.enable(false, "Creating a database in");
-                    view.switchToWaitingMode(true);
-                    new DatabaseCreator("A new database was created in").execute();
-                } else {
-                    try {
-                        SQLConnection.establish(library.getDataLocation());
-                    } catch (SQLException e1) {
-                        view.getPathLabel().setVisible(false);
-                        view.getMsgLabel().setText("SQL error");
-                        e1.printStackTrace();
+                try {
+                    if (!con.getDataLocation().exists()) {
+                        view.enable(false, "Creating a database in");
+                        view.switchToWaitingMode(true);
+                        new DatabaseCreator("A new database was created in").execute();
+                    } else {
+                        con.establish();
                     }
-                    view.enable(true, "Search in");
+                } catch (SQLException ex) {
+                    view.getPathLabel().setVisible(false);
+                    view.getMsgLabel().setText("SQL error");
+                    ex.printStackTrace();
                 }
+                view.enable(true, "Search in");
             }
         });
 
         view.getUpdateButton().addActionListener(e -> {
             try {
+                library = new LibraryData(con);
                 library.delete();
-            } catch (SQLException e1) {
+            } catch (SQLException ex) {
                 view.getPathLabel().setVisible(false);
                 view.getMsgLabel().setText("SQL error");
-                e1.printStackTrace();
+                ex.printStackTrace();
             }
             view.enable(false, "Updating the database in");
             view.switchToWaitingMode(true);
@@ -77,17 +78,17 @@ public class SwingListeners {
 
         view.getTitlesRadioButton().addActionListener(e -> {
             view.getTitleTextField().setEnabled(false);
-            column = "Title";
+            search.setColumn("Title");
         });
 
         view.getFileNamesRadioButton().addActionListener(e -> {
             view.getTitleTextField().setEnabled(true);
-            column = "Filename";
+            search.setColumn("Filename");
         });
 
         view.getDisplayAllRadioButton().addActionListener(e -> {
             view.getTitleTextField().setEnabled(true);
-            column = "all";
+            search.setColumn("all");
         });
 
         KeyAdapter searchOnEnter = new KeyAdapter() {
@@ -115,6 +116,7 @@ public class SwingListeners {
 
         @Override
         protected Boolean doInBackground() throws Exception {
+            library = new LibraryData(con);
             library.create();
             if (library.hasMp3Files()) {
                 return true;
@@ -172,13 +174,13 @@ public class SwingListeners {
     }
 
     private DefaultTableModel createTableModel(List<String> searchPairs) throws SQLException {
-        Object[][] data = new DataSearch(column).getResults(searchPairs);
+        Object[][] data = search.getResults(con, searchPairs);
         Object[] columnNames;
-        if (Objects.equals(column, "all")) {
+        if (Objects.equals(search.getColumn(), "all")) {
             String[] tagNames = DataEntry.getTagNames();
             columnNames = Arrays.copyOfRange(tagNames, 1, tagNames.length);
         } else {
-            columnNames = new String[] {column};
+            columnNames = new String[] {search.getColumn()};
         }
         return new DefaultTableModel(data, columnNames);
     }

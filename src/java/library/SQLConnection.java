@@ -5,13 +5,22 @@ import java.sql.*;
 
 public class SQLConnection {
 
-    private static Connection con;
+    private File DataLocation;
+    private Connection con;
 
-    public static Connection get() {
+    public SQLConnection(File musicFolder) {
+        DataLocation = new File(musicFolder, "libraryData");
+    }
+
+    public File getDataLocation() {
+        return DataLocation;
+    }
+
+    public Connection get() {
         return con;
     }
 
-    public static void establish(File DataLocation) throws SQLException {
+    public void establish() throws SQLException {
         con = DriverManager.getConnection(
                 "jdbc:hsqldb:file:" + new File(DataLocation, "Data"), "user", "");
     }

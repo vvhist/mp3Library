@@ -7,9 +7,17 @@ import java.util.List;
 
 public class DataSearch {
 
-    private final String column;
+    private String column;
 
     public DataSearch(String column) {
+        this.column = column;
+    }
+
+    public String getColumn() {
+        return column;
+    }
+
+    public void setColumn(String column) {
         this.column = column;
     }
 
@@ -76,9 +84,9 @@ public class DataSearch {
         return data;
     }
 
-    public String[][] getResults(List<String> query) throws SQLException {
+    public String[][] getResults(SQLConnection con, List<String> query) throws SQLException {
         String conditions = convertToSQL(query);
-        ResultSet rs = SQLConnection.get().createStatement().executeQuery(
+        ResultSet rs = con.get().createStatement().executeQuery(
                 "SELECT * FROM mp3Lib WHERE " + conditions);
         List<DataEntry> results = convertToList(rs);
         return convertToArray(results);

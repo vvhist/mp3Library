@@ -11,27 +11,23 @@ import java.util.Arrays;
 
 public class LibraryData {
 
-    private File musicFolder;
+    private SQLConnection con;
     private Statement stmt;
     private PreparedStatement pstmt;
 
-    public LibraryData(File musicFolder) {
-        this.musicFolder = musicFolder;
-    }
-
-    public File getDataLocation() {
-        return new File(musicFolder, "libraryData");
+    public LibraryData(SQLConnection con) throws SQLException {
+        this.con = con;
+        con.establish();
+        stmt = con.get().createStatement();
     }
 
     public void create() throws SQLException {
-        SQLConnection.establish(getDataLocation());
-        stmt = SQLConnection.get().createStatement();
         stmt.execute("SET IGNORECASE TRUE");
         stmt.executeUpdate(
                 "CREATE TABLE mp3Lib (" + getTagsWithSQLSyntax() + ", PRIMARY KEY (id))");
-        pstmt = SQLConnection.get().prepareStatement(
+        pstmt = con.get().prepareStatement(
                 "INSERT INTO mp3Lib VALUES (?, ?, ?, ?, ?, ?, ?)");
-        addMp3FromFolder(musicFolder);
+        addMp3FromFolder(con.getDataLocation().getParentFile());
         DataEntry.setIDToZero();
     }
 
@@ -42,7 +38,7 @@ public class LibraryData {
 
     public void delete() throws SQLException {
         stmt.execute("SHUTDOWN");
-        deleteFolder(getDataLocation());
+        deleteFolder(con.getDataLocation());
     }
 
     private static String getTagsWithSQLSyntax() {
