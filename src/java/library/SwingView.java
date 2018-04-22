@@ -71,10 +71,6 @@ public class SwingView {
         return updateButton;
     }
 
-    public JProgressBar getProgressBar() {
-        return progressBar;
-    }
-
     public JLabel getMsgLabel() {
         return msgLabel;
     }
@@ -97,6 +93,36 @@ public class SwingView {
 
     public JTable getTable() {
         return table;
+    }
+
+    public void enable(boolean isEnabled, String message) {
+        enableComponents(mainPanel, isEnabled);
+        if (isEnabled) {
+            titleTextField.setEnabled(false);
+        } else {
+            pathLabel.setEnabled(true);
+            msgLabel.setEnabled(true);
+        }
+        msgLabel.setText(message);
+    }
+
+    public void switchToWaitingMode(boolean isInWaitingMode) {
+        if (isInWaitingMode) {
+            mainPanel.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        } else {
+            mainPanel.setCursor(null);
+        }
+        progressBar.setEnabled(isInWaitingMode);
+        progressBar.setVisible(isInWaitingMode);
+    }
+
+    private static void enableComponents(Container container, boolean isEnabled) {
+        for (Component component : container.getComponents()) {
+            component.setEnabled(isEnabled);
+            if (component instanceof Container) {
+                enableComponents((Container) component, isEnabled);
+            }
+        }
     }
 
     {

@@ -2,7 +2,6 @@ package library;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.sql.SQLException;
@@ -20,7 +19,7 @@ public class SwingListeners {
 
     public SwingListeners(SwingView swingView) {
         this.view = swingView;
-        enableView(false, "Select your music folder");
+        view.enable(false, "Select your music folder");
         view.getSelectButton().setEnabled(true);
 
         view.getSelectButton().addActionListener(e -> {
@@ -32,8 +31,8 @@ public class SwingListeners {
                 view.getPathLabel().setVisible(true);
                 view.getPathLabel().setText(library.getMusicFolder().getPath());
                 if (!library.getDataLocation().exists()) {
-                    enableView(false, "Creating a database in");
-                    switchToWaitingMode(true);
+                    view.enable(false, "Creating a database in");
+                    view.switchToWaitingMode(true);
                     new DatabaseCreator("A new database was created in").execute();
                 } else {
                     try {
@@ -43,7 +42,7 @@ public class SwingListeners {
                         view.getMsgLabel().setText("SQL error");
                         e1.printStackTrace();
                     }
-                    enableView(true, "Search in");
+                    view.enable(true, "Search in");
                 }
             }
         });
@@ -56,8 +55,8 @@ public class SwingListeners {
                 view.getMsgLabel().setText("SQL error");
                 e1.printStackTrace();
             }
-            enableView(false, "Updating the database in");
-            switchToWaitingMode(true);
+            view.enable(false, "Updating the database in");
+            view.switchToWaitingMode(true);
             new DatabaseCreator("The database was updated in").execute();
         });
 
@@ -131,7 +130,7 @@ public class SwingListeners {
                     view.getSelectButton().setEnabled(true);
                     view.getMsgLabel().setText("No MP3 files were found in");
                 } else {
-                    enableView(true, message);
+                    view.enable(true, message);
                 }
                 get();
             } catch (ExecutionException | InterruptedException e) {
@@ -141,37 +140,7 @@ public class SwingListeners {
                 }
                 e.printStackTrace();
             }
-            switchToWaitingMode(false);
-        }
-    }
-
-    private void enableView(boolean isEnabled, String message) {
-        enableComponents(view.$$$getRootComponent$$$(), isEnabled);
-        if (isEnabled) {
-            view.getTitleTextField().setEnabled(false);
-        } else {
-            view.getPathLabel().setEnabled(true);
-            view.getMsgLabel().setEnabled(true);
-        }
-        view.getMsgLabel().setText(message);
-    }
-
-    private void switchToWaitingMode(boolean isInWaitingMode) {
-        if (isInWaitingMode) {
-            view.$$$getRootComponent$$$().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        } else {
-            view.$$$getRootComponent$$$().setCursor(null);
-        }
-        view.getProgressBar().setEnabled(isInWaitingMode);
-        view.getProgressBar().setVisible(isInWaitingMode);
-    }
-
-    private static void enableComponents(Container container, boolean isEnabled) {
-        for (Component component : container.getComponents()) {
-            component.setEnabled(isEnabled);
-            if (component instanceof Container) {
-                enableComponents((Container) component, isEnabled);
-            }
+            view.switchToWaitingMode(false);
         }
     }
 
