@@ -7,18 +7,18 @@ import java.util.List;
 
 public class DataSearch {
 
-    private String column;
+    private Filter filter;
 
-    public DataSearch(String column) {
-        this.column = column;
+    public DataSearch(Filter filter) {
+        this.filter = filter;
     }
 
-    public String getColumn() {
-        return column;
+    public Filter getFilter() {
+        return filter;
     }
 
-    public void setColumn(String column) {
-        this.column = column;
+    public void setFilter(Filter filter) {
+        this.filter = filter;
     }
 
     private static String convertToSQL(List<String> query) {
@@ -35,16 +35,16 @@ public class DataSearch {
         List<DataEntry> results = new ArrayList<>();
         while (rs.next()) {
             DataEntry entry = new DataEntry();
-            switch (column) {
-                case "Title":
+            switch (filter) {
+                case TITLE:
                     entry.setTitle(rs.getString("title") != null
                                  ? rs.getString("title")
                                  : rs.getString("fileName"));
                     break;
-                case "Filename":
+                case FILENAME:
                     entry.setFileName(rs.getString("fileName"));
                     break;
-                case "all":
+                case ALL:
                     String[] tags = new String[entry.getSize() - 1];
                     for (int i = 0; i < entry.getSize() - 1; i++) {
                         tags[i] = rs.getString(i + 2);
@@ -60,20 +60,20 @@ public class DataSearch {
     private String[][] convertToArray(List<DataEntry> results) {
         String[][] data = new String[][]{};
         int numberOfRows = results.size();
-        switch (column) {
-            case "Title":
+        switch (filter) {
+            case TITLE:
                 data = new String[numberOfRows][1];
                 for (int i = 0; i < numberOfRows; i++) {
                     data[i][0] = results.get(i).getTitle();
                 }
                 break;
-            case "Filename":
+            case FILENAME:
                 data = new String[numberOfRows][1];
                 for (int i = 0; i < numberOfRows; i++) {
                     data[i][0] = results.get(i).getFileName();
                 }
                 break;
-            case "all":
+            case ALL:
                 data = new String[numberOfRows][6];
                 for (int i = 0; i < numberOfRows; i++) {
                     for (int j = 0; j < results.get(i).getSize() - 1; j++) {
@@ -90,5 +90,15 @@ public class DataSearch {
                 "SELECT * FROM mp3Lib WHERE " + conditions);
         List<DataEntry> results = convertToList(rs);
         return convertToArray(results);
+    }
+
+    public enum Filter {
+        TITLE, FILENAME, ALL;
+
+        @Override
+        public String toString() {
+            String s = super.toString();
+            return s.substring(0,1).toUpperCase() + s.substring(1).toLowerCase();
+        }
     }
 }
