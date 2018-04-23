@@ -1,27 +1,38 @@
 package library;
 
+import javax.swing.table.DefaultTableModel;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class DataSearch {
 
-    private Filter filter;
+    private static ColumnFilter filter = ColumnFilter.TITLE;
+    private String[][] data = new String[][]{};
+    private DefaultTableModel tableModel = new DefaultTableModel();
 
-    public DataSearch(Filter filter) {
-        this.filter = filter;
+    public DataSearch(SQLConnection con, List<String> searchValues) throws SQLException {
+        ResultSet rs = con.get().createStatement().executeQuery(
+                "SELECT * FROM mp3Lib WHERE " + addSQLSyntax(searchValues));
+        createData(convertToList(rs));
+        createTableModel();
     }
 
-    public Filter getFilter() {
-        return filter;
+    public static void setFilter(ColumnFilter filter) {
+        DataSearch.filter = filter;
     }
 
-    public void setFilter(Filter filter) {
-        this.filter = filter;
+    public String[][] getData() {
+        return data;
     }
 
-    private static String convertToSQL(List<String> query) {
+    public DefaultTableModel getTableModel() {
+        return tableModel;
+    }
+
+    private static String addSQLSyntax(List<String> query) {
         for (int i = 1; i < query.size(); i += 2) {
             query.add(i, "='");
             i += 2;
@@ -57,8 +68,7 @@ public class DataSearch {
         return results;
     }
 
-    private String[][] convertToArray(List<DataEntry> results) {
-        String[][] data = new String[][]{};
+    private void createData(List<DataEntry> results) {
         int numberOfRows = results.size();
         switch (filter) {
             case TITLE:
@@ -81,18 +91,20 @@ public class DataSearch {
                     }
                 }
         }
-        return data;
     }
 
-    public String[][] getResults(SQLConnection con, List<String> query) throws SQLException {
-        String conditions = convertToSQL(query);
-        ResultSet rs = con.get().createStatement().executeQuery(
-                "SELECT * FROM mp3Lib WHERE " + conditions);
-        List<DataEntry> results = convertToList(rs);
-        return convertToArray(results);
+    private void createTableModel() {
+        Object[] columnNames;
+        if (filter == ColumnFilter.ALL) {
+            String[] tagNames = DataEntry.getTagNames();
+            columnNames = Arrays.copyOfRange(tagNames, 1, tagNames.length);
+        } else {
+            columnNames = new String[] {filter.toString()};
+        }
+        tableModel.setDataVector(data, columnNames);
     }
 
-    public enum Filter {
+    public enum ColumnFilter {
         TITLE, FILENAME, ALL;
 
         @Override

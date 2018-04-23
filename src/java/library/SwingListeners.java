@@ -1,15 +1,12 @@
 package library;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 public class SwingListeners {
@@ -17,7 +14,6 @@ public class SwingListeners {
     private SwingView view = new SwingView();
     private SQLConnection con;
     private LibraryData library;
-    private DataSearch search = new DataSearch(DataSearch.Filter.TITLE);
 
     public SwingListeners() {
         view.enable(false, "Select your music folder");
@@ -65,9 +61,10 @@ public class SwingListeners {
 
         view.getSearchButton().addActionListener(e -> {
             try {
-                List<String> searchPairs = getSearchPairs();
-                if (searchPairs.size() >= 2) {
-                    view.getTable().setModel(createTableModel(searchPairs));
+                List<String> searchValues = getSearchValues();
+                if (searchValues.size() >= 2) {
+                    DataSearch search = new DataSearch(con, searchValues);
+                    view.getTable().setModel(search.getTableModel());
                 }
             } catch (SQLException ex) {
                 view.getPathLabel().setVisible(false);
@@ -78,17 +75,17 @@ public class SwingListeners {
 
         view.getTitlesRadioButton().addActionListener(e -> {
             view.getTitleTextField().setEnabled(false);
-            search.setFilter(DataSearch.Filter.TITLE);
+            DataSearch.setFilter(DataSearch.ColumnFilter.TITLE);
         });
 
         view.getFileNamesRadioButton().addActionListener(e -> {
             view.getTitleTextField().setEnabled(true);
-            search.setFilter(DataSearch.Filter.FILENAME);
+            DataSearch.setFilter(DataSearch.ColumnFilter.FILENAME);
         });
 
         view.getDisplayAllRadioButton().addActionListener(e -> {
             view.getTitleTextField().setEnabled(true);
-            search.setFilter(DataSearch.Filter.ALL);
+            DataSearch.setFilter(DataSearch.ColumnFilter.ALL);
         });
 
         KeyAdapter searchOnEnter = new KeyAdapter() {
@@ -148,7 +145,7 @@ public class SwingListeners {
         }
     }
 
-    private List<String> getSearchPairs() {
+    private List<String> getSearchValues() {
         List<String> searchValues = new ArrayList<>();
         if (!view.getArtistTextField().getText().isEmpty()) {
             searchValues.add("Artist");
@@ -171,17 +168,5 @@ public class SwingListeners {
             searchValues.add(view.getTitleTextField().getText());
         }
         return searchValues;
-    }
-
-    private DefaultTableModel createTableModel(List<String> searchPairs) throws SQLException {
-        Object[][] data = search.getResults(con, searchPairs);
-        Object[] columnNames;
-        if (Objects.equals(search.getFilter(), DataSearch.Filter.ALL)) {
-            String[] tagNames = DataEntry.getTagNames();
-            columnNames = Arrays.copyOfRange(tagNames, 1, tagNames.length);
-        } else {
-            columnNames = new String[] {search.getFilter().toString()};
-        }
-        return new DefaultTableModel(data, columnNames);
     }
 }

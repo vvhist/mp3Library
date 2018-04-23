@@ -20,7 +20,8 @@ public class TestMp3Library {
 
         List<String> searchValues = new ArrayList<>();
         searchValues.addAll(Arrays.asList("Year", "2000", "Genre", "Classic Rock"));
-        String[][] actualData = new DataSearch(DataSearch.Filter.TITLE).getResults(con, searchValues);
+        DataSearch.setFilter(DataSearch.ColumnFilter.TITLE);
+        String[][] actualData = new DataSearch(con, searchValues).getData();
         List<String> actualResults = new ArrayList<>();
         for (String[] result : actualData) {
             actualResults.add(result[0]);
@@ -33,7 +34,8 @@ public class TestMp3Library {
 
         searchValues = new ArrayList<>();
         searchValues.addAll(Arrays.asList("Title", "Five"));
-        actualData = new DataSearch(DataSearch.Filter.FILENAME).getResults(con, searchValues);
+        DataSearch.setFilter(DataSearch.ColumnFilter.FILENAME);
+        actualData = new DataSearch(con, searchValues).getData();
         actualResults = new ArrayList<>();
         for (String[] result : actualData) {
             actualResults.add(result[0]);
@@ -45,7 +47,8 @@ public class TestMp3Library {
 
         searchValues = new ArrayList<>();
         searchValues.addAll(Arrays.asList("Artist", "Artist 2", "Album", "Album 2"));
-        actualData = new DataSearch(DataSearch.Filter.ALL).getResults(con, searchValues);
+        DataSearch.setFilter(DataSearch.ColumnFilter.ALL);
+        actualData = new DataSearch(con, searchValues).getData();
         String[][] expectedData = new String[][] {
          {"ID3v23withSuffixInUPPERCASE.MP3", "Artist 2", "Five", "Album 2", "Classic Rock", "2000"},
          {"ID3v24tags.mp3",                  "Artist 2", "Four", "Album 2", "Classic Rock", "2000"},
