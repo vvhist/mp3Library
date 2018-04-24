@@ -48,12 +48,12 @@ public class DataSearch {
             DataEntry entry = new DataEntry();
             switch (filter) {
                 case TITLE:
-                    entry.setTitle(rs.getString("title") != null
-                                 ? rs.getString("title")
-                                 : rs.getString("fileName"));
+                    entry.setTitle(rs.getString(filter.toString()) != null
+                                 ? rs.getString(filter.toString())
+                                 : rs.getString(ColumnFilter.FILENAME.toString()));
                     break;
                 case FILENAME:
-                    entry.setFileName(rs.getString("fileName"));
+                    entry.setFileName(rs.getString(filter.toString()));
                     break;
                 case ALL:
                     String[] tags = new String[entry.getSize() - 1];
@@ -110,7 +110,7 @@ public class DataSearch {
         @Override
         public String toString() {
             String s = super.toString();
-            return s.substring(0,1).toUpperCase() + s.substring(1).toLowerCase();
+            return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
         }
     }
 }

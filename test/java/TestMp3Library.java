@@ -18,22 +18,20 @@ public class TestMp3Library {
         LibraryData library = new LibraryData(con);
         library.create();
 
-        List<String> searchValues = new ArrayList<>();
-        searchValues.addAll(Arrays.asList("Year", "2000", "Genre", "Classic Rock"));
+        List<String> searchValues = new ArrayList<>(Arrays.asList("Year",  "2000",
+                                                                  "Genre", "Classic Rock"));
         DataSearch.setFilter(DataSearch.ColumnFilter.TITLE);
         String[][] actualData = new DataSearch(con, searchValues).getData();
         List<String> actualResults = new ArrayList<>();
         for (String[] result : actualData) {
             actualResults.add(result[0]);
         }
-        List<String> expectedResults = new ArrayList<>();
-        expectedResults.addAll(Arrays.asList(
+        List<String> expectedResults = new ArrayList<>(Arrays.asList(
                 "Five", "One", "Two", "ID3v23tagsWithoutTitle.mp3", "Four", "Six"));
 
         Assert.assertEquals(actualResults, expectedResults);
 
-        searchValues = new ArrayList<>();
-        searchValues.addAll(Arrays.asList("Title", "Five"));
+        searchValues = new ArrayList<>(Arrays.asList("Title", "Five"));
         DataSearch.setFilter(DataSearch.ColumnFilter.FILENAME);
         actualData = new DataSearch(con, searchValues).getData();
         actualResults = new ArrayList<>();
@@ -45,8 +43,8 @@ public class TestMp3Library {
 
         Assert.assertEquals(actualResults, expectedResults);
 
-        searchValues = new ArrayList<>();
-        searchValues.addAll(Arrays.asList("Artist", "Artist 2", "Album", "Album 2"));
+        searchValues = new ArrayList<>(Arrays.asList("Artist", "Artist 2",
+                                                     "Album",  "Album 2"));
         DataSearch.setFilter(DataSearch.ColumnFilter.ALL);
         actualData = new DataSearch(con, searchValues).getData();
         String[][] expectedData = new String[][] {
