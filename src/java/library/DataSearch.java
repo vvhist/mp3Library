@@ -10,10 +10,11 @@ import java.util.List;
 public class DataSearch {
 
     private static ColumnFilter filter = ColumnFilter.TITLE;
-    private String[][] data = new String[][]{};
+    private String[][] data;
     private DefaultTableModel tableModel = new DefaultTableModel();
 
     public DataSearch(SQLConnection con, List<String> searchValues) throws SQLException {
+        con.establish();
         ResultSet rs = con.get().createStatement().executeQuery(
                 "SELECT * FROM mp3Lib WHERE " + addSQLSyntax(searchValues));
         createData(convertToList(rs));
@@ -48,16 +49,16 @@ public class DataSearch {
             DataEntry entry = new DataEntry();
             switch (filter) {
                 case TITLE:
-                    entry.setTitle(rs.getString(filter.toString()) != null
-                                 ? rs.getString(filter.toString())
-                                 : rs.getString(ColumnFilter.FILENAME.toString()));
+                    entry.setTag(filter, rs.getString(filter.toString()) != null
+                                       ? rs.getString(filter.toString())
+                                       : rs.getString(ColumnFilter.FILENAME.toString()));
                     break;
                 case FILENAME:
-                    entry.setFileName(rs.getString(filter.toString()));
+                    entry.setTag(filter, rs.getString(filter.toString()));
                     break;
                 case ALL:
-                    String[] tags = new String[entry.getSize() - 1];
-                    for (int i = 0; i < entry.getSize() - 1; i++) {
+                    String[] tags = new String[DataEntry.getSize() - 1];
+                    for (int i = 0; i < DataEntry.getSize() - 1; i++) {
                         tags[i] = rs.getString(i + 2);
                     }
                     entry.setTags(tags);
@@ -70,26 +71,21 @@ public class DataSearch {
 
     private void createData(List<DataEntry> results) {
         int numberOfRows = results.size();
+        data = new String[numberOfRows][filter.numberOfColumns];
         switch (filter) {
             case TITLE:
-                data = new String[numberOfRows][1];
-                for (int i = 0; i < numberOfRows; i++) {
-                    data[i][0] = results.get(i).getTitle();
-                }
-                break;
             case FILENAME:
-                data = new String[numberOfRows][1];
                 for (int i = 0; i < numberOfRows; i++) {
-                    data[i][0] = results.get(i).getFileName();
+                    data[i][0] = results.get(i).getTag(filter);
                 }
                 break;
             case ALL:
-                data = new String[numberOfRows][6];
                 for (int i = 0; i < numberOfRows; i++) {
-                    for (int j = 0; j < results.get(i).getSize() - 1; j++) {
+                    for (int j = 0; j < DataEntry.getSize() - 1; j++) {
                         data[i][j] = results.get(i).getTags()[j + 1];
                     }
                 }
+                break;
         }
     }
 
@@ -105,7 +101,16 @@ public class DataSearch {
     }
 
     public enum ColumnFilter {
-        TITLE, FILENAME, ALL;
+
+        TITLE   (1),
+        FILENAME(1),
+        ALL     (6);
+
+        private final int numberOfColumns;
+
+        ColumnFilter(int numberOfColumns) {
+            this.numberOfColumns = numberOfColumns;
+        }
 
         @Override
         public String toString() {

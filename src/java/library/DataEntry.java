@@ -36,20 +36,18 @@ public class DataEntry {
         id = 0;
     }
 
-    public String getFileName() {
-        return fileName;
+    public String getTag(DataSearch.ColumnFilter filter) {
+        if (filter == DataSearch.ColumnFilter.TITLE) {
+            return title;
+        } else return fileName;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
+    public void setTag(DataSearch.ColumnFilter filter, String tag) {
+        if (filter == DataSearch.ColumnFilter.TITLE) {
+            title = tag;
+        } else {
+            fileName = tag;
+        }
     }
 
     public String[] getTags() {
@@ -65,12 +63,12 @@ public class DataEntry {
         year     = tags[5];
     }
 
-    public int getSize() {
-        return getTags().length;
-    }
-
     public static String[] getTagNames() {
         return new String[] {"Id", "Filename", "Artist", "Title", "Album", "Genre", "Year"};
+    }
+
+    public static int getSize() {
+        return getTagNames().length;
     }
 
     /**

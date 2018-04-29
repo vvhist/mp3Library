@@ -65,7 +65,7 @@ public class LibraryData {
     }
 
     private void addToDatabase(DataEntry entry) throws SQLException {
-        for (int i = 0; i < entry.getSize(); i++) {
+        for (int i = 0; i < DataEntry.getSize(); i++) {
             pstmt.setString(i + 1, entry.getTags()[i]);
         }
         pstmt.executeUpdate();

@@ -28,20 +28,13 @@ public class SwingListeners {
                 con = new SQLConnection(musicFolder);
                 view.getPathLabel().setVisible(true);
                 view.getPathLabel().setText(musicFolder.getPath());
-                try {
-                    if (!con.getDataLocation().exists()) {
-                        view.enable(false, "Creating a database in");
-                        view.switchToWaitingMode(true);
-                        new DatabaseCreator("A new database was created in").execute();
-                    } else {
-                        con.establish();
-                    }
-                } catch (SQLException ex) {
-                    view.getPathLabel().setVisible(false);
-                    view.getMsgLabel().setText("SQL error");
-                    ex.printStackTrace();
+                if (!con.getDataLocation().exists()) {
+                    view.enable(false, "Creating a database in");
+                    view.switchToWaitingMode(true);
+                    new DatabaseCreator("A new database was created in").execute();
+                } else {
+                    view.enable(true, "Search in");
                 }
-                view.enable(true, "Search in");
             }
         });
 
@@ -112,7 +105,7 @@ public class SwingListeners {
         }
 
         @Override
-        protected Boolean doInBackground() throws Exception {
+        protected Boolean doInBackground() throws SQLException {
             library = new LibraryData(con);
             library.create();
             if (library.hasMp3Files()) {
