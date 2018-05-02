@@ -21,7 +21,8 @@ public class SQLConnection {
     }
 
     public void establish() throws SQLException {
-        con = DriverManager.getConnection(
-                "jdbc:hsqldb:file:" + new File(DataLocation, "Data"), "user", "");
+        String url = "jdbc:hsqldb:file:" + new File(DataLocation, "Data");
+        con = DriverManager.getConnection(url, "user", "");
+        Log.get().info("Connection is established to " + url);
     }
 }

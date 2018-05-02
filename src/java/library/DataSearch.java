@@ -15,8 +15,9 @@ public class DataSearch {
 
     public DataSearch(SQLConnection con, List<String> searchValues) throws SQLException {
         con.establish();
-        ResultSet rs = con.get().createStatement().executeQuery(
-                "SELECT * FROM mp3Lib WHERE " + addSQLSyntax(searchValues));
+        String sql = "SELECT * FROM mp3Lib WHERE " + addSQLSyntax(searchValues);
+        ResultSet rs = con.get().createStatement().executeQuery(sql);
+        Log.get().fine(sql);
         createData(convertToList(rs));
         createTableModel();
     }

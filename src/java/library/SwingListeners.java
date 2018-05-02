@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
 
 public class SwingListeners {
 
@@ -45,6 +46,7 @@ public class SwingListeners {
             } catch (SQLException ex) {
                 view.getPathLabel().setVisible(false);
                 view.getMsgLabel().setText("SQL error");
+                Log.get().log(Level.SEVERE, "While updating", ex);
                 ex.printStackTrace();
             }
             view.enable(false, "Updating the database in");
@@ -62,6 +64,7 @@ public class SwingListeners {
             } catch (SQLException ex) {
                 view.getPathLabel().setVisible(false);
                 view.getMsgLabel().setText("SQL error");
+                Log.get().log(Level.SEVERE, "While searching", ex);
                 ex.printStackTrace();
             }
         });
@@ -132,6 +135,7 @@ public class SwingListeners {
                     view.getPathLabel().setVisible(false);
                     view.getMsgLabel().setText("SQL error");
                 }
+                Log.get().log(Level.SEVERE, "While creating a database", e);
                 e.printStackTrace();
             }
             view.switchToWaitingMode(false);

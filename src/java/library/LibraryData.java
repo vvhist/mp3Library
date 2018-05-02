@@ -8,6 +8,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.sql.*;
 import java.util.Arrays;
+import java.util.logging.Level;
 
 public class LibraryData {
 
@@ -23,11 +24,14 @@ public class LibraryData {
 
     public void create() throws SQLException {
         stmt.execute("SET IGNORECASE TRUE");
-        stmt.executeUpdate(
-                "CREATE TABLE mp3Lib (" + getTagsWithSQLSyntax() + ", PRIMARY KEY (id))");
+        String sql = "CREATE TABLE mp3Lib (" + getTagsWithSQLSyntax() + ", PRIMARY KEY (id))";
+        stmt.executeUpdate(sql);
+        Log.get().fine(sql);
         pstmt = con.get().prepareStatement(
                 "INSERT INTO mp3Lib VALUES (?, ?, ?, ?, ?, ?, ?)");
-        addMp3FromFolder(con.getDataLocation().getParentFile());
+        File musicFolder = con.getDataLocation().getParentFile();
+        addMp3FromFolder(musicFolder);
+        Log.get().info("Adding mp3 files from " + musicFolder.getPath());
         DataEntry.setIDToZero();
     }
 
@@ -38,7 +42,9 @@ public class LibraryData {
 
     public void delete() throws SQLException {
         stmt.execute("SHUTDOWN");
-        deleteFolder(con.getDataLocation());
+        File DataLocation = con.getDataLocation();
+        deleteFolder(DataLocation);
+        Log.get().info(DataLocation.getPath() + " was deleted");
     }
 
     private static String getTagsWithSQLSyntax() {
@@ -58,7 +64,8 @@ public class LibraryData {
                 try {
                     addToDatabase(new DataEntry(file));
                 } catch (IOException | UnsupportedTagException | InvalidDataException e) {
-                    System.err.println("Error: the program failed to process " + file.getPath());
+                    Log.get().log(Level.SEVERE, "While processing " + file.getPath(), e);
+                    e.printStackTrace();
                 }
             }
         }
