@@ -1,6 +1,7 @@
 package library;
 
 import javax.swing.table.DefaultTableModel;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -13,12 +14,12 @@ public class DataSearch {
     private String[][] data;
     private DefaultTableModel tableModel = new DefaultTableModel();
 
-    public DataSearch(SQLConnection con, List<String> searchValues) throws SQLException {
-        con.establish();
+    public DataSearch(Connection con, List<String> searchValues) throws SQLException {
         String sql = "SELECT * FROM mp3Lib WHERE " + addSQLSyntax(searchValues);
-        ResultSet rs = con.get().createStatement().executeQuery(sql);
-        Log.get().fine(sql);
-        createData(convertToList(rs));
+        try (ResultSet rs = con.createStatement().executeQuery(sql)) {
+            Log.get().fine(sql);
+            createData(convertToList(rs));
+        }
         createTableModel();
     }
 

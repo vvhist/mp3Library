@@ -4,7 +4,10 @@ import javax.swing.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -13,8 +16,8 @@ import java.util.logging.Level;
 public class SwingListeners {
 
     private SwingView view = new SwingView();
-    private SQLConnection con;
     private LibraryData library;
+    private String url;
 
     public SwingListeners() {
         view.enable(false, "Select your music folder");
@@ -26,10 +29,12 @@ public class SwingListeners {
             int returnValue = chooser.showDialog(null, "Select");
             if (returnValue == JFileChooser.APPROVE_OPTION) {
                 File musicFolder = chooser.getSelectedFile();
-                con = new SQLConnection(musicFolder);
+                File DatabaseLocation = new File(musicFolder, "libraryData");
+                library = new LibraryData(DatabaseLocation);
+                url = "jdbc:hsqldb:file:" + new File(DatabaseLocation, "Data");
                 view.getPathLabel().setVisible(true);
                 view.getPathLabel().setText(musicFolder.getPath());
-                if (!con.getDataLocation().exists()) {
+                if (!DatabaseLocation.exists()) {
                     view.enable(false, "Creating a database in");
                     view.switchToWaitingMode(true);
                     new DatabaseCreator("A new database was created in").execute();
@@ -40,9 +45,10 @@ public class SwingListeners {
         });
 
         view.getUpdateButton().addActionListener(e -> {
-            try {
-                library = new LibraryData(con);
-                library.delete();
+            try (Connection con = DriverManager.getConnection(url, "user", "");
+                 Statement stmt = con.createStatement()) {
+                Log.get().info("Connection is established to " + url);
+                library.delete(stmt);
             } catch (SQLException ex) {
                 view.getPathLabel().setVisible(false);
                 view.getMsgLabel().setText("SQL error");
@@ -55,7 +61,8 @@ public class SwingListeners {
         });
 
         view.getSearchButton().addActionListener(e -> {
-            try {
+            try (Connection con = DriverManager.getConnection(url, "user", "")) {
+                Log.get().info("Connection is established to " + url);
                 List<String> searchValues = getSearchValues();
                 if (searchValues.size() >= 2) {
                     DataSearch search = new DataSearch(con, searchValues);
@@ -109,13 +116,16 @@ public class SwingListeners {
 
         @Override
         protected Boolean doInBackground() throws SQLException {
-            library = new LibraryData(con);
-            library.create();
-            if (library.hasMp3Files()) {
-                return true;
-            } else {
-                library.delete();
-                return false;
+            try (Connection con = DriverManager.getConnection(url, "user", "");
+                 Statement stmt = con.createStatement()) {
+                Log.get().info("Connection is established to " + url);
+                library.create(con);
+                if (library.hasMp3Files(stmt)) {
+                    return true;
+                } else {
+                    library.delete(stmt);
+                    return false;
+                }
             }
         }
 

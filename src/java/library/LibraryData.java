@@ -12,39 +12,39 @@ import java.util.logging.Level;
 
 public class LibraryData {
 
-    private SQLConnection con;
-    private Statement stmt;
+    private File DatabaseLocation;
     private PreparedStatement pstmt;
 
-    public LibraryData(SQLConnection con) throws SQLException {
-        this.con = con;
-        con.establish();
-        stmt = con.get().createStatement();
+    public LibraryData(File DatabaseLocation) {
+        this.DatabaseLocation = DatabaseLocation;
     }
 
-    public void create() throws SQLException {
-        stmt.execute("SET IGNORECASE TRUE");
-        String sql = "CREATE TABLE mp3Lib (" + getTagsWithSQLSyntax() + ", PRIMARY KEY (id))";
-        stmt.executeUpdate(sql);
-        Log.get().fine(sql);
-        pstmt = con.get().prepareStatement(
-                "INSERT INTO mp3Lib VALUES (?, ?, ?, ?, ?, ?, ?)");
-        File musicFolder = con.getDataLocation().getParentFile();
-        addMp3FromFolder(musicFolder);
-        Log.get().info("Adding mp3 files from " + musicFolder.getPath());
+    public void create(Connection con) throws SQLException {
+        try (Statement stmt = con.createStatement()) {
+            stmt.execute("SET IGNORECASE TRUE");
+            String sql = "CREATE TABLE mp3Lib (" + getTagsWithSQLSyntax() + ", PRIMARY KEY (id))";
+            stmt.executeUpdate(sql);
+            Log.get().fine(sql);
+        }
+        try (PreparedStatement pstmt = con.prepareStatement(
+                "INSERT INTO mp3Lib VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+            this.pstmt = pstmt;
+            File musicFolder = DatabaseLocation.getParentFile();
+            addMp3FromFolder(musicFolder);
+            Log.get().info("Adding mp3 files from " + musicFolder.getPath());
+        }
         DataEntry.setIDToZero();
     }
 
-    public boolean hasMp3Files() throws SQLException {
+    public boolean hasMp3Files(Statement stmt) throws SQLException {
         ResultSet resultSet = stmt.executeQuery("SELECT * FROM mp3Lib");
         return resultSet.isBeforeFirst();
     }
 
-    public void delete() throws SQLException {
+    public void delete(Statement stmt) throws SQLException {
         stmt.execute("SHUTDOWN");
-        File DataLocation = con.getDataLocation();
-        deleteFolder(DataLocation);
-        Log.get().info(DataLocation.getPath() + " was deleted");
+        deleteFolder(DatabaseLocation);
+        Log.get().info(DatabaseLocation.getPath() + " was deleted");
     }
 
     private static String getTagsWithSQLSyntax() {
