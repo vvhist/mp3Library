@@ -7,15 +7,17 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-public class DataSearch {
+public final class DataSearch {
 
     private static ColumnFilter filter = ColumnFilter.TITLE;
     private String[][] data;
     private DefaultTableModel tableModel = new DefaultTableModel();
 
-    public DataSearch(Connection con, List<String> searchValues) throws SQLException {
-        String sql = "SELECT * FROM mp3Lib WHERE " + addSQLSyntax(searchValues);
+    public DataSearch(Connection con, Map<String, String> searchValues) throws SQLException {
+        String sql = "SELECT * FROM mp3Lib WHERE " + buildSQLString(searchValues);
         try (ResultSet rs = con.createStatement().executeQuery(sql)) {
             Log.get().fine(sql);
             createData(convertToList(rs));
@@ -35,18 +37,16 @@ public class DataSearch {
         return tableModel;
     }
 
-    private static String addSQLSyntax(List<String> query) {
-        for (int i = 1; i < query.size(); i += 2) {
-            query.add(i, "='");
-            i += 2;
-            query.add(i, "' AND ");
-        }
-        query.set(query.size() - 1, "'");
-        return String.join("", query);
+    private String buildSQLString(Map<String, String> searchValues) {
+        searchValues.replaceAll((key, value) -> "'" + value + "'");
+        return searchValues.entrySet().stream()
+                .map(e -> e.getKey() + "=" + e.getValue())
+                .collect(Collectors.joining(" AND "));
     }
 
     private List<DataEntry> convertToList(ResultSet rs) throws SQLException {
         List<DataEntry> results = new ArrayList<>();
+
         while (rs.next()) {
             DataEntry entry = new DataEntry();
             switch (filter) {
@@ -74,6 +74,7 @@ public class DataSearch {
     private void createData(List<DataEntry> results) {
         int numberOfRows = results.size();
         data = new String[numberOfRows][filter.numberOfColumns];
+
         switch (filter) {
             case TITLE:
             case FILENAME:
@@ -93,6 +94,7 @@ public class DataSearch {
 
     private void createTableModel() {
         Object[] columnNames;
+
         if (filter == ColumnFilter.ALL) {
             String[] tagNames = DataEntry.getTagNames();
             columnNames = Arrays.copyOfRange(tagNames, 1, tagNames.length);

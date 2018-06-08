@@ -2,7 +2,7 @@ package library;
 
 import javax.swing.*;
 
-public class Application {
+public final class Application {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -12,7 +12,7 @@ public class Application {
                     | UnsupportedLookAndFeelException e) {
                 e.printStackTrace();
             }
-            new SwingListeners();
+            new SwingView();
         });
     }
 }

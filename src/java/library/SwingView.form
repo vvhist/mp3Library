@@ -45,7 +45,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="87c7b" class="javax.swing.JTextField" binding="artistTextField">
+          <component id="87c7b" class="javax.swing.JTextField" binding="artistField">
             <constraints>
               <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
@@ -69,7 +69,7 @@
               <text value="Album:"/>
             </properties>
           </component>
-          <component id="5500" class="javax.swing.JTextField" binding="albumTextField">
+          <component id="5500" class="javax.swing.JTextField" binding="albumField">
             <constraints>
               <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
@@ -85,7 +85,7 @@
               <text value="Genre:"/>
             </properties>
           </component>
-          <component id="96f56" class="javax.swing.JTextField" binding="genreTextField">
+          <component id="96f56" class="javax.swing.JTextField" binding="genreField">
             <constraints>
               <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
@@ -101,7 +101,7 @@
               <text value="Year:"/>
             </properties>
           </component>
-          <component id="cceaa" class="javax.swing.JTextField" binding="yearTextField">
+          <component id="cceaa" class="javax.swing.JTextField" binding="yearField">
             <constraints>
               <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
@@ -117,7 +117,7 @@
               <text value="Title:"/>
             </properties>
           </component>
-          <component id="df2f3" class="javax.swing.JTextField" binding="titleTextField">
+          <component id="df2f3" class="javax.swing.JTextField" binding="titleField">
             <constraints>
               <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
@@ -156,7 +156,7 @@
               <text value="Display file names"/>
             </properties>
           </component>
-          <component id="6ce9e" class="javax.swing.JRadioButton" binding="displayAllRadioButton">
+          <component id="6ce9e" class="javax.swing.JRadioButton" binding="allRadioButton">
             <constraints>
               <grid row="7" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>

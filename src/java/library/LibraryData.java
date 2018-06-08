@@ -10,7 +10,7 @@ import java.sql.*;
 import java.util.Arrays;
 import java.util.logging.Level;
 
-public class LibraryData {
+public final class LibraryData {
 
     private File DatabaseLocation;
     private PreparedStatement pstmt;

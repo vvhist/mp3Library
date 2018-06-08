@@ -5,16 +5,21 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 
 import javax.swing.*;
+import javax.swing.table.TableModel;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.HashMap;
+import java.util.Map;
 
-public class SwingView {
+public final class SwingView implements View {
 
     private JPanel mainPanel;
-    private JTextField artistTextField;
-    private JTextField albumTextField;
-    private JTextField genreTextField;
-    private JTextField yearTextField;
-    private JTextField titleTextField;
+    private JTextField artistField;
+    private JTextField albumField;
+    private JTextField genreField;
+    private JTextField yearField;
+    private JTextField titleField;
     private JButton searchButton;
     private JButton selectButton;
     private JButton updateButton;
@@ -23,90 +28,118 @@ public class SwingView {
     private JLabel pathLabel;
     private JRadioButton titlesRadioButton;
     private JRadioButton fileNamesRadioButton;
-    private JRadioButton displayAllRadioButton;
+    private JRadioButton allRadioButton;
     private JTable table;
 
     public SwingView() {
-        JFrame frame = new JFrame("MP3 search");
-        frame.setContentPane(mainPanel);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setVisible(true);
+        Presenter presenter = new Presenter(this);
 
+        selectButton.addActionListener(e -> presenter.select());
+
+        updateButton.addActionListener(e -> presenter.update());
+
+        searchButton.addActionListener(e -> {
+            Map<String, String> tags = new HashMap<>();
+            tags.put("Artist", artistField.getText());
+            tags.put("Album",  albumField.getText());
+            tags.put("Genre",  genreField.getText());
+            tags.put("Year",   yearField.getText());
+            tags.put("Title",  titleField.isEnabled() ? titleField.getText() : "");
+            presenter.search(tags);
+        });
+
+        KeyAdapter searchOnEnter = new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    searchButton.doClick();
+                }
+            }
+        };
+        artistField.addKeyListener(searchOnEnter);
+        albumField.addKeyListener(searchOnEnter);
+        genreField.addKeyListener(searchOnEnter);
+        yearField.addKeyListener(searchOnEnter);
+        titleField.addKeyListener(searchOnEnter);
+
+        titlesRadioButton.addActionListener(e -> {
+            titleField.setEnabled(false);
+            presenter.displayTitles();
+        });
+        fileNamesRadioButton.addActionListener(e -> {
+            titleField.setEnabled(true);
+            presenter.displayFileNames();
+        });
+        allRadioButton.addActionListener(e -> {
+            titleField.setEnabled(true);
+            presenter.displayAll();
+        });
         ButtonGroup group = new ButtonGroup();
         group.add(titlesRadioButton);
         group.add(fileNamesRadioButton);
-        group.add(displayAllRadioButton);
+        group.add(allRadioButton);
+
+        JFrame frame = new JFrame("MP3 search");
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.setContentPane(mainPanel);
+        frame.pack();
+        frame.setMinimumSize(new Dimension(500, 307));
+        frame.setVisible(true);
     }
 
-    public JTextField getArtistTextField() {
-        return artistTextField;
-    }
+    @Override
+    public void enterSelectionMode(String message) {
+        enableComponents(mainPanel, false);
+        selectButton.setEnabled(true);
+        msgLabel.setEnabled(true);
+        pathLabel.setEnabled(true);
 
-    public JTextField getAlbumTextField() {
-        return albumTextField;
-    }
-
-    public JTextField getGenreTextField() {
-        return genreTextField;
-    }
-
-    public JTextField getYearTextField() {
-        return yearTextField;
-    }
-
-    public JTextField getTitleTextField() {
-        return titleTextField;
-    }
-
-    public JButton getSearchButton() {
-        return searchButton;
-    }
-
-    public JButton getSelectButton() {
-        return selectButton;
-    }
-
-    public JButton getUpdateButton() {
-        return updateButton;
-    }
-
-    public JLabel getMsgLabel() {
-        return msgLabel;
-    }
-
-    public JLabel getPathLabel() {
-        return pathLabel;
-    }
-
-    public JRadioButton getTitlesRadioButton() {
-        return titlesRadioButton;
-    }
-
-    public JRadioButton getFileNamesRadioButton() {
-        return fileNamesRadioButton;
-    }
-
-    public JRadioButton getDisplayAllRadioButton() {
-        return displayAllRadioButton;
-    }
-
-    public JTable getTable() {
-        return table;
-    }
-
-    public void enable(boolean isEnabled, String message) {
-        enableComponents(mainPanel, isEnabled);
-        if (isEnabled) {
-            titleTextField.setEnabled(false);
-        } else {
-            pathLabel.setEnabled(true);
-            msgLabel.setEnabled(true);
-        }
+        switchWaitingMode(false);
         msgLabel.setText(message);
     }
 
-    public void switchToWaitingMode(boolean isInWaitingMode) {
+    @Override
+    public void enterWaitingMode(String message) {
+        enableComponents(mainPanel, false);
+        msgLabel.setEnabled(true);
+        pathLabel.setEnabled(true);
+
+        switchWaitingMode(true);
+        msgLabel.setText(message);
+    }
+
+    @Override
+    public void enterSearchingMode(String message) {
+        enableComponents(mainPanel, true);
+        if (titlesRadioButton.isSelected()) {
+            titleField.setEnabled(false);
+        }
+        switchWaitingMode(false);
+        msgLabel.setText(message);
+    }
+
+    @Override
+    public void enterExceptionMode(String message) {
+        enableComponents(mainPanel, false);
+        msgLabel.setEnabled(true);
+
+        switchWaitingMode(false);
+        pathLabel.setVisible(false);
+        msgLabel.setText(message);
+    }
+
+    @Override
+    public void displayPath(String path) {
+        pathLabel.setVisible(true);
+        pathLabel.setText(path);
+    }
+
+    @Override
+    public void updateTable(TableModel model) {
+        table.setModel(model);
+    }
+
+    private void switchWaitingMode(boolean isInWaitingMode) {
         if (isInWaitingMode) {
             mainPanel.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         } else {
@@ -116,7 +149,7 @@ public class SwingView {
         progressBar.setVisible(isInWaitingMode);
     }
 
-    private static void enableComponents(Container container, boolean isEnabled) {
+    private void enableComponents(Container container, boolean isEnabled) {
         for (Component component : container.getComponents()) {
             component.setEnabled(isEnabled);
             if (component instanceof Container) {
@@ -158,31 +191,31 @@ public class SwingView {
         final JPanel panel1 = new JPanel();
         panel1.setLayout(new GridLayoutManager(10, 2, new Insets(0, 0, 0, 0), -1, -1));
         mainPanel.add(panel1, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        artistTextField = new JTextField();
-        panel1.add(artistTextField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        artistField = new JTextField();
+        panel1.add(artistField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         final JLabel label1 = new JLabel();
         label1.setText("Artist:");
         panel1.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
         final JLabel label2 = new JLabel();
         label2.setText("Album:");
         panel1.add(label2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
-        albumTextField = new JTextField();
-        panel1.add(albumTextField, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        albumField = new JTextField();
+        panel1.add(albumField, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         final JLabel label3 = new JLabel();
         label3.setText("Genre:");
         panel1.add(label3, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
-        genreTextField = new JTextField();
-        panel1.add(genreTextField, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        genreField = new JTextField();
+        panel1.add(genreField, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         final JLabel label4 = new JLabel();
         label4.setText("Year:");
         panel1.add(label4, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
-        yearTextField = new JTextField();
-        panel1.add(yearTextField, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        yearField = new JTextField();
+        panel1.add(yearField, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         final JLabel label5 = new JLabel();
         label5.setText("Title:");
         panel1.add(label5, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
-        titleTextField = new JTextField();
-        panel1.add(titleTextField, new GridConstraints(4, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        titleField = new JTextField();
+        panel1.add(titleField, new GridConstraints(4, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         searchButton = new JButton();
         searchButton.setFocusPainted(false);
         searchButton.setText("Search");
@@ -196,9 +229,9 @@ public class SwingView {
         fileNamesRadioButton = new JRadioButton();
         fileNamesRadioButton.setText("Display file names");
         panel1.add(fileNamesRadioButton, new GridConstraints(6, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        displayAllRadioButton = new JRadioButton();
-        displayAllRadioButton.setText("Display all tags");
-        panel1.add(displayAllRadioButton, new GridConstraints(7, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        allRadioButton = new JRadioButton();
+        allRadioButton.setText("Display all tags");
+        panel1.add(allRadioButton, new GridConstraints(7, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         msgLabel = new JLabel();
         msgLabel.setText("Select your music folder");
         mainPanel.add(msgLabel, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));

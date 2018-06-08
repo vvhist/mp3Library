@@ -8,7 +8,7 @@ import com.mpatric.mp3agic.UnsupportedTagException;
 import java.io.File;
 import java.io.IOException;
 
-public class DataEntry {
+public final class DataEntry {
 
     private static int id = 0;
     private String fileName;

@@ -10,23 +10,26 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
-public class TestMp3Library {
+public final class TestMp3Library {
 
     @Test public void testDataSearch() throws SQLException {
         File DatabaseLocation = new File(new File("test/resources"), "libraryData");
         LibraryData library = new LibraryData(DatabaseLocation);
         String url = "jdbc:hsqldb:file:" + new File(DatabaseLocation, "Data");
+
         try (Connection con = DriverManager.getConnection(url, "user", "");
              Statement stmt = con.createStatement()) {
             Log.get().info("Connection is established to " + url);
+
             library.create(con);
 
-            List<String> searchValues = new ArrayList<>(Arrays.asList("Year",  "2000",
-                                                                      "Genre", "Classic Rock"));
+
+            Map<String, String> searchValues = new HashMap<>();
+            searchValues.put("Year", "2000");
+            searchValues.put("Genre", "Classic Rock");
+
             DataSearch.setFilter(DataSearch.ColumnFilter.TITLE);
             String[][] actualData = new DataSearch(con, searchValues).getData();
             List<String> actualResults = new ArrayList<>();
@@ -38,7 +41,10 @@ public class TestMp3Library {
 
             Assert.assertEquals(actualResults, expectedResults);
 
-            searchValues = new ArrayList<>(Arrays.asList("Title", "Five"));
+
+            searchValues = new HashMap<>();
+            searchValues.put("Title", "Five");
+
             DataSearch.setFilter(DataSearch.ColumnFilter.FILENAME);
             actualData = new DataSearch(con, searchValues).getData();
             actualResults = new ArrayList<>();
@@ -50,8 +56,11 @@ public class TestMp3Library {
 
             Assert.assertEquals(actualResults, expectedResults);
 
-            searchValues = new ArrayList<>(Arrays.asList("Artist", "Artist 2",
-                                                         "Album",  "Album 2"));
+
+            searchValues = new HashMap<>();
+            searchValues.put("Artist", "Artist 2");
+            searchValues.put("Album", "Album 2");
+
             DataSearch.setFilter(DataSearch.ColumnFilter.ALL);
             actualData = new DataSearch(con, searchValues).getData();
 
