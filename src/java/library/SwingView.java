@@ -5,6 +5,9 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
@@ -26,10 +29,17 @@ public final class SwingView implements View {
     private JProgressBar progressBar;
     private JLabel msgLabel;
     private JLabel pathLabel;
-    private JRadioButton titlesRadioButton;
-    private JRadioButton fileNamesRadioButton;
-    private JRadioButton allRadioButton;
+
     private JTable table;
+    private TableColumn filename;
+    private TableColumn artist;
+    private TableColumn title;
+    private TableColumn album;
+    private TableColumn genre;
+    private TableColumn year;
+    private JRadioButton titleRadioButton;
+    private JRadioButton filenameRadioButton;
+    private JRadioButton allRadioButton;
 
     public SwingView() {
         Presenter presenter = new Presenter(this);
@@ -44,7 +54,7 @@ public final class SwingView implements View {
             tags.put("Album",  albumField.getText());
             tags.put("Genre",  genreField.getText());
             tags.put("Year",   yearField.getText());
-            tags.put("Title",  titleField.isEnabled() ? titleField.getText() : "");
+            tags.put("Title",  titleField.getText());
             presenter.search(tags);
         });
 
@@ -62,22 +72,27 @@ public final class SwingView implements View {
         yearField.addKeyListener(searchOnEnter);
         titleField.addKeyListener(searchOnEnter);
 
-        titlesRadioButton.addActionListener(e -> {
-            titleField.setEnabled(false);
-            presenter.displayTitles();
+        titleRadioButton.addActionListener(e -> {
+            clearTable(table.getColumnCount());
+            table.addColumn(title);
         });
-        fileNamesRadioButton.addActionListener(e -> {
-            titleField.setEnabled(true);
-            presenter.displayFileNames();
+        filenameRadioButton.addActionListener(e -> {
+            clearTable(table.getColumnCount());
+            table.addColumn(filename);
         });
         allRadioButton.addActionListener(e -> {
-            titleField.setEnabled(true);
-            presenter.displayAll();
+            clearTable(table.getColumnCount());
+            table.addColumn(filename);
+            table.addColumn(artist);
+            table.addColumn(title);
+            table.addColumn(album);
+            table.addColumn(genre);
+            table.addColumn(year);
         });
-        ButtonGroup group = new ButtonGroup();
-        group.add(titlesRadioButton);
-        group.add(fileNamesRadioButton);
-        group.add(allRadioButton);
+        ButtonGroup buttonGroup = new ButtonGroup();
+        buttonGroup.add(titleRadioButton);
+        buttonGroup.add(filenameRadioButton);
+        buttonGroup.add(allRadioButton);
 
         JFrame frame = new JFrame("MP3 search");
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -85,6 +100,32 @@ public final class SwingView implements View {
         frame.pack();
         frame.setMinimumSize(new Dimension(500, 307));
         frame.setVisible(true);
+    }
+
+    @Override
+    public void updateTable(String[][] data, String[] columns) {
+        TableModel tableModel = new DefaultTableModel(data, columns) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        table.setModel(tableModel);
+        TableColumnModel model = table.getColumnModel();
+        filename = model.getColumn(0);
+        artist   = model.getColumn(1);
+        title    = model.getColumn(2);
+        album    = model.getColumn(3);
+        genre    = model.getColumn(4);
+        year     = model.getColumn(5);
+
+        titleRadioButton.setEnabled(true);
+        filenameRadioButton.setEnabled(true);
+        allRadioButton.setEnabled(true);
+
+        if (titleRadioButton.isSelected()) titleRadioButton.doClick();
+        if (filenameRadioButton.isSelected()) filenameRadioButton.doClick();
+        if (allRadioButton.isSelected()) allRadioButton.doClick();
     }
 
     @Override
@@ -111,9 +152,9 @@ public final class SwingView implements View {
     @Override
     public void enterSearchingMode(String message) {
         enableComponents(mainPanel, true);
-        if (titlesRadioButton.isSelected()) {
-            titleField.setEnabled(false);
-        }
+        titleRadioButton.setEnabled(false);
+        filenameRadioButton.setEnabled(false);
+        allRadioButton.setEnabled(false);
         switchWaitingMode(false);
         msgLabel.setText(message);
     }
@@ -134,9 +175,10 @@ public final class SwingView implements View {
         pathLabel.setText(path);
     }
 
-    @Override
-    public void updateTable(TableModel model) {
-        table.setModel(model);
+    private void clearTable(int columnCount) {
+        for (int i = 0; i < columnCount; i++) {
+            table.removeColumn(table.getColumnModel().getColumn(0));
+        }
     }
 
     private void switchWaitingMode(boolean isInWaitingMode) {
@@ -222,13 +264,13 @@ public final class SwingView implements View {
         panel1.add(searchButton, new GridConstraints(8, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final Spacer spacer1 = new Spacer();
         panel1.add(spacer1, new GridConstraints(9, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-        titlesRadioButton = new JRadioButton();
-        titlesRadioButton.setSelected(true);
-        titlesRadioButton.setText("Display titles");
-        panel1.add(titlesRadioButton, new GridConstraints(5, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        fileNamesRadioButton = new JRadioButton();
-        fileNamesRadioButton.setText("Display file names");
-        panel1.add(fileNamesRadioButton, new GridConstraints(6, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        titleRadioButton = new JRadioButton();
+        titleRadioButton.setSelected(true);
+        titleRadioButton.setText("Display titles");
+        panel1.add(titleRadioButton, new GridConstraints(5, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        filenameRadioButton = new JRadioButton();
+        filenameRadioButton.setText("Display file names");
+        panel1.add(filenameRadioButton, new GridConstraints(6, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         allRadioButton = new JRadioButton();
         allRadioButton.setText("Display all tags");
         panel1.add(allRadioButton, new GridConstraints(7, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));

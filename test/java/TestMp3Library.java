@@ -1,76 +1,54 @@
-import library.DataSearch;
-import library.LibraryData;
-import library.Log;
-import org.testng.Assert;
+import library.*;
 import org.testng.annotations.Test;
 import org.testng.internal.junit.ArrayAsserts;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.*;
 
 public final class TestMp3Library {
 
-    @Test public void testDataSearch() throws SQLException {
-        File DatabaseLocation = new File(new File("test/resources"), "libraryData");
-        LibraryData library = new LibraryData(DatabaseLocation);
-        String url = "jdbc:hsqldb:file:" + new File(DatabaseLocation, "Data");
+    @Test
+    public void testID3TagsRecognition() throws SQLException {
+        Map<String, String> searchValues = new HashMap<>();
+        searchValues.put("Year", "2000");
+        searchValues.put("Genre", "Classic Rock");
 
-        try (Connection con = DriverManager.getConnection(url, "user", "");
-             Statement stmt = con.createStatement()) {
-            Log.get().info("Connection is established to " + url);
+        String[][] expectedData = new String[][]{
+                {"ID3v23withSuffixInUPPERCASE.MP3", "Artist 2", "Five", "Album 2", "Classic Rock", "2000"},
+                {"ID3v1tags.mp3",                   "Artist 1", "One",  "Album 1", "Classic Rock", "2000"},
+                {"ID3v22tags.mp3",                  "Artist 1", "Two",  "Album 1", "Classic Rock", "2000"},
+                {"ID3v23tagsWithoutTitle.mp3",      "Artist 1", null,   "Album 1", "Classic Rock", "2000"},
+                {"ID3v24tags.mp3",                  "Artist 2", "Four", "Album 2", "Classic Rock", "2000"},
+                {"ID3v24tagsSub.mp3",               "Artist 2", "Six",  "Album 2", "Classic Rock", "2000"}
+        };
+        test(searchValues, expectedData);
+    }
 
-            library.create(con);
+    @Test
+    public void testSpecificSearch() throws SQLException {
+        Map<String, String> searchValues = new HashMap<>();
+        searchValues.put("Title", "One");
 
+        String[][] expectedData = new String[][]{
+                {"ID3v1tags.mp3", "Artist 1", "One",  "Album 1", "Classic Rock", "2000"}
+        };
+        test(searchValues, expectedData);
+    }
 
-            Map<String, String> searchValues = new HashMap<>();
-            searchValues.put("Year", "2000");
-            searchValues.put("Genre", "Classic Rock");
+    private void test(Map<String, String> searchValues, String[][] expectedData)
+            throws SQLException {
+        File musicFolder = new File("test/resources");
+        File location = new File(musicFolder, "libraryData");
+        Database database = new Database(location);
 
-            DataSearch.setFilter(DataSearch.ColumnFilter.TITLE);
-            String[][] actualData = new DataSearch(con, searchValues).getData();
-            List<String> actualResults = new ArrayList<>();
-            for (String[] result : actualData) {
-                actualResults.add(result[0]);
-            }
-            List<String> expectedResults = new ArrayList<>(Arrays.asList(
-                    "Five", "One", "Two", "ID3v23tagsWithoutTitle.mp3", "Four", "Six"));
+        List<DataEntry> entries = new AudioData(musicFolder).extract();
+        database.create(entries);
 
-            Assert.assertEquals(actualResults, expectedResults);
+        List<DataEntry> results = database.search(searchValues);
+        database.delete();
 
-
-            searchValues = new HashMap<>();
-            searchValues.put("Title", "Five");
-
-            DataSearch.setFilter(DataSearch.ColumnFilter.FILENAME);
-            actualData = new DataSearch(con, searchValues).getData();
-            actualResults = new ArrayList<>();
-            for (String[] result : actualData) {
-                actualResults.add(result[0]);
-            }
-            expectedResults = new ArrayList<>();
-            expectedResults.add("ID3v23withSuffixInUPPERCASE.MP3");
-
-            Assert.assertEquals(actualResults, expectedResults);
-
-
-            searchValues = new HashMap<>();
-            searchValues.put("Artist", "Artist 2");
-            searchValues.put("Album", "Album 2");
-
-            DataSearch.setFilter(DataSearch.ColumnFilter.ALL);
-            actualData = new DataSearch(con, searchValues).getData();
-
-            String[][] expectedData = new String[][]{
-                    {"ID3v23withSuffixInUPPERCASE.MP3", "Artist 2", "Five", "Album 2", "Classic Rock", "2000"},
-                    {"ID3v24tags.mp3",                  "Artist 2", "Four", "Album 2", "Classic Rock", "2000"},
-                    {"ID3v24tagsSub.mp3",               "Artist 2", "Six",  "Album 2", "Classic Rock", "2000"}};
-
-            ArrayAsserts.assertArrayEquals(actualData, expectedData);
-            library.delete(stmt);
-        }
+        String[][] actualData = SearchProcessing.createTableData(results);
+        ArrayAsserts.assertArrayEquals(actualData, expectedData);
     }
 }

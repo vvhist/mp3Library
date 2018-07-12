@@ -10,30 +10,32 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-public final class MusicFiles {
+public final class AudioData {
 
-    List<File> mp3files;
+    private List<File> mp3Files = new ArrayList<>();
 
-    public static List<File> select(File musicFolder) {
-        List<File> mp3Files = new ArrayList<>();
+    public AudioData(File musicFolder) {
         addMp3FromFolder(musicFolder, mp3Files);
-        return mp3Files;
     }
 
-    public static List<DataEntry> extractTags(List<File> mp3Files) {
+    public boolean isAvailable() {
+        return !mp3Files.isEmpty();
+    }
+
+    public List<DataEntry> extract() {
         List<DataEntry> entries = new ArrayList<>();
         for (File mp3 : mp3Files) {
             try {
                 entries.add(new DataEntry(mp3));
             } catch (IOException | UnsupportedTagException | InvalidDataException e) {
-                Log.get().log(Level.SEVERE, "While processing " + mp3.getPath(), e);
+                Log.get().log(Level.WARNING, "While processing " + mp3.getPath(), e);
                 e.printStackTrace();
             }
         }
         return entries;
     }
 
-    private static void addMp3FromFolder(File folder, List<File> mp3Files) {
+    private void addMp3FromFolder(File folder, List<File> mp3Files) {
         FileFilter filter = pathname -> pathname.isDirectory()
                 || pathname.getName().toLowerCase().endsWith(".mp3");
         File[] filteredFiles = folder.listFiles(filter);

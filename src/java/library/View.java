@@ -1,7 +1,5 @@
 package library;
 
-import javax.swing.table.TableModel;
-
 public interface View {
 
     void enterSelectionMode(String message);
@@ -14,5 +12,5 @@ public interface View {
 
     void displayPath(String path);
 
-    void updateTable(TableModel model);
+    void updateTable(String[][] data, String[] columns);
 }

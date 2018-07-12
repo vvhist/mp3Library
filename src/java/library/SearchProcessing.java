@@ -2,7 +2,9 @@ package library;
 
 import java.util.List;
 
-public final class DataSearch {
+public final class SearchProcessing {
+
+    private SearchProcessing() {}
 
     public static String[][] createTableData(List<DataEntry> results) {
         int numberOfRows = results.size();
