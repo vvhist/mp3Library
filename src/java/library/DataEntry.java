@@ -10,61 +10,63 @@ import java.io.IOException;
 
 public final class DataEntry {
 
-    private static int id = 0;
-    private String fileName;
-    private String artist;
-    private String title;
-    private String album;
-    private String genre;
-    private String year;
+    private final String filename;
+    private final String artist;
+    private final String title;
+    private final String album;
+    private final String genre;
+    private final Integer year;
 
-    public DataEntry() {}
+    public DataEntry(String filename, String artist, String title, String album, String genre, Integer year) {
+        this.filename = filename;
+        this.artist = artist;
+        this.title = title;
+        this.album = album;
+        this.genre = genre;
+        this.year = year;
+    }
 
     public DataEntry(File file) throws IOException, UnsupportedTagException, InvalidDataException {
         Mp3File mp3 = new Mp3File(file);
         ID3Wrapper tag = new ID3Wrapper(mp3.getId3v1Tag(), mp3.getId3v2Tag());
-        id++;
-        fileName = file.getName();
+        filename = file.getName();
         artist = tag.getArtist();
         title  = tag.getTitle();
         album  = tag.getAlbum();
         genre  = getGenre(mp3);
-        year   = tag.getYear();
+
+        String year = tag.getYear();
+        this.year = ((year == null) || year.equals(""))
+                ? null
+                : Integer.valueOf(tag.getYear());
     }
 
-    public static void setIDToZero() {
-        id = 0;
+    public String getFilename() {
+        return filename;
     }
 
-    public String getTag(DataSearch.ColumnFilter filter) {
-        if (filter == DataSearch.ColumnFilter.TITLE) {
-            return title;
-        } else return fileName;
+    public String getArtist() {
+        return artist;
     }
 
-    public void setTag(DataSearch.ColumnFilter filter, String tag) {
-        if (filter == DataSearch.ColumnFilter.TITLE) {
-            title = tag;
-        } else {
-            fileName = tag;
-        }
+    public String getTitle() {
+        return title;
     }
 
-    public String[] getTags() {
-        return new String[] {Integer.toString(id), fileName, artist, title, album, genre, year};
+    public String getAlbum() {
+        return album;
     }
 
-    public void setTags(String[] tags) {
-        fileName = tags[0];
-        artist   = tags[1];
-        title    = tags[2];
-        album    = tags[3];
-        genre    = tags[4];
-        year     = tags[5];
+    public String getGenre() {
+        return genre;
+    }
+
+    public Integer getYear() {
+        return year;
     }
 
     public static String[] getTagNames() {
-        return new String[] {"Id", "Filename", "Artist", "Title", "Album", "Genre", "Year"};
+        return new String[] {"Filename", "Artist", "Title", "Album", "Genre", "Year"};
     }
 
     public static int getSize() {
@@ -94,4 +96,5 @@ public final class DataEntry {
             return null;
         }
     }
+
 }
